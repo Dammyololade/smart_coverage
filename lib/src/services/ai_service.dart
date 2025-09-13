@@ -5,6 +5,7 @@ import 'package:smart_coverage/src/models/smart_coverage_config.dart';
 enum AiProviderType {
   /// API-based provider
   api,
+
   /// Local CLI-based provider
   local,
 }
@@ -64,7 +65,7 @@ class AiServiceFactory {
   /// Create an AI service based on configuration
   static Future<AiService> create(SmartCoverageConfig config) async {
     final providerType = await _determineProviderType(config);
-    
+
     switch (config.aiConfig.provider) {
       case 'gemini':
         return providerType == AiProviderType.local
@@ -73,44 +74,52 @@ class AiServiceFactory {
       case 'gemini-cli':
         return GeminiCliService(config.aiConfig);
       default:
-        throw UnsupportedError('Provider ${config.aiConfig.provider} not supported');
+        throw UnsupportedError(
+          'Provider ${config.aiConfig.provider} not supported',
+        );
     }
   }
-  
-  static Future<AiProviderType> _determineProviderType(SmartCoverageConfig config) async {
+
+  static Future<AiProviderType> _determineProviderType(
+    SmartCoverageConfig config,
+  ) async {
     if (config.aiConfig.providerType == 'local') return AiProviderType.local;
     if (config.aiConfig.providerType == 'api') return AiProviderType.api;
-    
+
     // Auto-detection logic
     final localService = _createLocalService(config);
     if (await localService.isCliInstalled()) {
       return AiProviderType.local;
     }
-    
+
     final apiService = _createApiService(config);
     if (await apiService.hasValidApiKey()) {
       return AiProviderType.api;
     }
-    
+
     throw StateError('No available AI provider found');
   }
-  
+
   static LocalAiService _createLocalService(SmartCoverageConfig config) {
     switch (config.aiConfig.provider) {
       case 'gemini':
       case 'gemini-cli':
         return GeminiCliService(config.aiConfig);
       default:
-        throw UnsupportedError('Local provider ${config.aiConfig.provider} not supported');
+        throw UnsupportedError(
+          'Local provider ${config.aiConfig.provider} not supported',
+        );
     }
   }
-  
+
   static ApiAiService _createApiService(SmartCoverageConfig config) {
     switch (config.aiConfig.provider) {
       case 'gemini':
         return GeminiApiService(config.aiConfig);
       default:
-        throw UnsupportedError('API provider ${config.aiConfig.provider} not supported');
+        throw UnsupportedError(
+          'API provider ${config.aiConfig.provider} not supported',
+        );
     }
   }
 }
@@ -130,29 +139,24 @@ class GeminiCliService extends LocalAiService {
 
   @override
   Future<bool> isCliInstalled() async {
-    // TODO: Implement CLI detection
-    // Check if the CLI command is available in PATH
     throw UnimplementedError('CLI detection not yet implemented');
   }
 
   @override
   Future<String> getCliVersion() async {
-    // TODO: Implement version detection
-    // Run CLI command with --version flag
     throw UnimplementedError('CLI version detection not yet implemented');
   }
 
   @override
-  Future<String> generateCodeReview(CoverageData coverage, List<String> files) async {
-    // TODO: Implement code review generation
-    // Build prompt and execute CLI command
+  Future<String> generateCodeReview(
+    CoverageData coverage,
+    List<String> files,
+  ) async {
     throw UnimplementedError('Code review generation not yet implemented');
   }
 
   @override
   Future<String> generateInsights(CoverageData coverage) async {
-    // TODO: Implement insights generation
-    // Analyze coverage patterns and generate recommendations
     throw UnimplementedError('Insights generation not yet implemented');
   }
 
@@ -173,26 +177,24 @@ class GeminiApiService extends ApiAiService {
   final AiConfig config;
 
   @override
-  String get apiEndpoint => config.apiEndpoint ?? 'https://generativelanguage.googleapis.com';
+  String get apiEndpoint =>
+      config.apiEndpoint ?? 'https://generativelanguage.googleapis.com';
 
   @override
   Future<bool> hasValidApiKey() async {
-    // TODO: Implement API key validation
-    // Check if API key environment variable is set
     throw UnimplementedError('API key validation not yet implemented');
   }
 
   @override
-  Future<String> generateCodeReview(CoverageData coverage, List<String> files) async {
-    // TODO: Implement API-based code review generation
-    // Make HTTP request to Gemini API
+  Future<String> generateCodeReview(
+    CoverageData coverage,
+    List<String> files,
+  ) async {
     throw UnimplementedError('API code review generation not yet implemented');
   }
 
   @override
   Future<String> generateInsights(CoverageData coverage) async {
-    // TODO: Implement API-based insights generation
-    // Make HTTP request to analyze coverage patterns
     throw UnimplementedError('API insights generation not yet implemented');
   }
 

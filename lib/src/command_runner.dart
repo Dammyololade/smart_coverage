@@ -8,7 +8,8 @@ import 'package:smart_coverage/src/version.dart';
 
 const executableName = 'smart_coverage';
 const packageName = 'smart_coverage';
-const description = 'A modern Dart CLI tool for intelligent coverage analysis with AI-powered insights for Flutter/Dart projects.';
+const description =
+    'A modern Dart CLI tool for intelligent coverage analysis with AI-powered insights for Flutter/Dart projects.';
 
 /// {@template smart_coverage_command_runner}
 /// A [CommandRunner] for the CLI.

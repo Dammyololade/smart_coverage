@@ -113,13 +113,16 @@ class CoverageSummary {
   final int branchesHit;
 
   /// Line coverage percentage (0.0 to 100.0)
-  double get linePercentage => linesFound > 0 ? (linesHit / linesFound) * 100 : 0.0;
+  double get linePercentage =>
+      linesFound > 0 ? (linesHit / linesFound) * 100 : 0.0;
 
   /// Function coverage percentage (0.0 to 100.0)
-  double get functionPercentage => functionsFound > 0 ? (functionsHit / functionsFound) * 100 : 0.0;
+  double get functionPercentage =>
+      functionsFound > 0 ? (functionsHit / functionsFound) * 100 : 0.0;
 
   /// Branch coverage percentage (0.0 to 100.0)
-  double get branchPercentage => branchesFound > 0 ? (branchesHit / branchesFound) * 100 : 0.0;
+  double get branchPercentage =>
+      branchesFound > 0 ? (branchesHit / branchesFound) * 100 : 0.0;
 
   /// Creates a copy of this summary with optional modifications
   CoverageSummary copyWith({

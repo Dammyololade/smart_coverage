@@ -48,7 +48,10 @@ aiConfig:
         expect(configMap!['packagePath'], equals('/test/package'));
         expect(configMap['baseBranch'], equals('develop'));
         expect(configMap['outputDir'], equals('/test/output'));
-        expect(configMap['outputFormats'], containsAll(['console', 'html', 'json']));
+        expect(
+          configMap['outputFormats'],
+          containsAll(['console', 'html', 'json']),
+        );
         expect(configMap['skipTests'], isFalse);
         expect(configMap['aiInsights'], isTrue);
         expect(configMap['aiConfig']['provider'], equals('openai'));
@@ -68,7 +71,9 @@ packagePath: /test/package
       });
 
       test('should handle missing file gracefully', () async {
-        final configMap = await configService.loadYamlConfig('/non/existent/config.yaml');
+        final configMap = await configService.loadYamlConfig(
+          '/non/existent/config.yaml',
+        );
         expect(configMap, isNull);
       });
 
@@ -106,8 +111,6 @@ outputFormats: "console"  # Should be list
         expect(envConfig, isA<Map<String, dynamic>>());
       });
     });
-
-
 
     group('validateConfig', () {
       test('should validate correct configuration', () async {
@@ -225,9 +228,5 @@ environment:
         expect(errors, isNotEmpty);
       });
     });
-
-
-
-
   });
 }

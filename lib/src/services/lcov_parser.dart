@@ -54,7 +54,9 @@ class LcovParserImpl implements LcovParser {
   CoverageData filterByFiles(CoverageData data, List<String> filePaths) {
     final fileSet = filePaths.toSet();
     final filteredFiles = data.files.where((file) {
-      return fileSet.any((path) => file.path.endsWith(path) || file.path.contains(path));
+      return fileSet.any(
+        (path) => file.path.endsWith(path) || file.path.contains(path),
+      );
     }).toList();
 
     return CoverageData(
@@ -86,10 +88,10 @@ class LcovParserImpl implements LcovParser {
     try {
       final content = params['content'] as String;
       final sendPort = params['sendPort'] as SendPort;
-      
+
       const parser = LcovParserImpl();
       final result = parser._parseContentSync(content);
-      
+
       sendPort.send({
         'data': _serializeCoverageData(result),
         'error': null,
@@ -107,10 +109,10 @@ class LcovParserImpl implements LcovParser {
   CoverageData _parseContentSync(String content) {
     final files = <FileCoverage>[];
     final lines = content.split('\n');
-    
+
     FileCoverage? currentFile;
     final linesCoverage = <LineCoverage>[];
-    
+
     for (final line in lines) {
       if (line.startsWith('SF:')) {
         // Save previous file if exists
@@ -118,7 +120,7 @@ class LcovParserImpl implements LcovParser {
           files.add(currentFile.copyWith(lines: List.from(linesCoverage)));
           linesCoverage.clear();
         }
-        
+
         // Start new file
         final filePath = line.substring(3);
         currentFile = FileCoverage(
@@ -139,12 +141,14 @@ class LcovParserImpl implements LcovParser {
         if (parts.length >= 2) {
           final lineNumber = int.tryParse(parts[0]);
           final hitCount = int.tryParse(parts[1]);
-          
+
           if (lineNumber != null && hitCount != null) {
-            linesCoverage.add(LineCoverage(
-              lineNumber: lineNumber,
-              hitCount: hitCount,
-            ));
+            linesCoverage.add(
+              LineCoverage(
+                lineNumber: lineNumber,
+                hitCount: hitCount,
+              ),
+            );
           }
         }
       } else if (line.startsWith('LF:')) {
@@ -197,12 +201,12 @@ class LcovParserImpl implements LcovParser {
         }
       }
     }
-    
+
     // Add last file
     if (currentFile != null) {
       files.add(currentFile.copyWith(lines: List.from(linesCoverage)));
     }
-    
+
     return CoverageData(
       files: files,
       summary: _calculateSummary(files),
@@ -240,21 +244,29 @@ class LcovParserImpl implements LcovParser {
   /// Serialize coverage data for isolate communication
   static Map<String, dynamic> _serializeCoverageData(CoverageData data) {
     return {
-      'files': data.files.map((f) => {
-        'path': f.path,
-        'lines': f.lines.map((l) => {
-          'lineNumber': l.lineNumber,
-          'hitCount': l.hitCount,
-        }).toList(),
-        'summary': {
-          'linesFound': f.summary.linesFound,
-          'linesHit': f.summary.linesHit,
-          'functionsFound': f.summary.functionsFound,
-          'functionsHit': f.summary.functionsHit,
-          'branchesFound': f.summary.branchesFound,
-          'branchesHit': f.summary.branchesHit,
-        },
-      }).toList(),
+      'files': data.files
+          .map(
+            (f) => {
+              'path': f.path,
+              'lines': f.lines
+                  .map(
+                    (l) => {
+                      'lineNumber': l.lineNumber,
+                      'hitCount': l.hitCount,
+                    },
+                  )
+                  .toList(),
+              'summary': {
+                'linesFound': f.summary.linesFound,
+                'linesHit': f.summary.linesHit,
+                'functionsFound': f.summary.functionsFound,
+                'functionsHit': f.summary.functionsHit,
+                'branchesFound': f.summary.branchesFound,
+                'branchesHit': f.summary.branchesHit,
+              },
+            },
+          )
+          .toList(),
       'summary': {
         'linesFound': data.summary.linesFound,
         'linesHit': data.summary.linesHit,
@@ -277,7 +289,7 @@ class LcovParserImpl implements LcovParser {
           hitCount: lineData['hitCount'] as int,
         );
       }).toList();
-      
+
       final summaryData = fileData['summary'] as Map<String, dynamic>;
       final summary = CoverageSummary(
         linesFound: summaryData['linesFound'] as int,
@@ -287,14 +299,14 @@ class LcovParserImpl implements LcovParser {
         branchesFound: summaryData['branchesFound'] as int,
         branchesHit: summaryData['branchesHit'] as int,
       );
-      
+
       return FileCoverage(
         path: fileData['path'] as String,
         lines: lines,
         summary: summary,
       );
     }).toList();
-    
+
     final summaryData = data['summary'] as Map<String, dynamic>;
     final summary = CoverageSummary(
       linesFound: summaryData['linesFound'] as int,
@@ -304,7 +316,7 @@ class LcovParserImpl implements LcovParser {
       branchesFound: summaryData['branchesFound'] as int,
       branchesHit: summaryData['branchesHit'] as int,
     );
-    
+
     return CoverageData(
       files: files,
       summary: summary,
