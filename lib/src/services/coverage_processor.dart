@@ -119,11 +119,19 @@ class CoverageProcessorImpl implements CoverageProcessor {
     }
 
     // Determine processing mode based on configuration
+    if (config.baseBranch == null) {
+      // No base branch specified, process all files
+      return processAllFilesCoverage(
+        lcovPath: lcovPath,
+        packagePath: config.packagePath,
+      );
+    }
+    
     try {
       // Try to process modified files only
       final modifiedCoverage = await processModifiedFilesCoverage(
         lcovPath: lcovPath,
-        baseBranch: config.baseBranch,
+        baseBranch: config.baseBranch!,
         packagePath: config.packagePath,
       );
       

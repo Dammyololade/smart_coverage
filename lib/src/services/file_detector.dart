@@ -63,6 +63,22 @@ class FileDetectorImpl implements FileDetector {
           .where((file) => file.isNotEmpty)
           .toList();
 
+      // If no committed changes found, check for uncommitted changes
+      if (modifiedFiles.isEmpty) {
+        final fallbackResult = await Process.run(
+          'git',
+          ['diff', '--name-only', 'HEAD'],
+          workingDirectory: workingDir,
+        );
+        
+        if (fallbackResult.exitCode == 0) {
+          final uncommittedFiles = fallbackResult.stdout.toString().trim().split('\n')
+              .where((file) => file.isNotEmpty)
+              .toList();
+          return _filterDartFiles(uncommittedFiles);
+        }
+      }
+
       return _filterDartFiles(modifiedFiles);
     } catch (e) {
       // Final fallback: return all Dart files when git operations fail

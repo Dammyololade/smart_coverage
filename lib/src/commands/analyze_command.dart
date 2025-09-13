@@ -237,6 +237,7 @@ class AnalyzeCommand extends Command<int> {
         final flutterLcovFile = File(path.join(packagePath, 'coverage', 'lcov.info'));
         final targetLcovFile = File(lcovFile);
         
+        // Check if Flutter coverage file exists and copy it
         if (await flutterLcovFile.exists()) {
           await flutterLcovFile.copy(lcovFile);
         } else {
