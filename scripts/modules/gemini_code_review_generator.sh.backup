@@ -1,0 +1,449 @@
+#!/bin/bash
+
+# Gemini Code Review Generator
+# Generates code review insights using Gemini AI based on git changes
+
+set -e
+
+# Configuration
+# Find project root by looking for .gemini directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR"))"
+GEMINI_CONFIG_DIR="$PROJECT_ROOT/.gemini"
+STYLEGUIDE_FILE="$GEMINI_CONFIG_DIR/styleguide.md"
+CONFIG_FILE="$GEMINI_CONFIG_DIR/config.yaml"
+SETTINGS_FILE="$GEMINI_CONFIG_DIR/settings.json"
+REVIEW_TEMPLATE="$(dirname "$SCRIPT_DIR")/templates/gemini_code_review_template.html"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Function to log messages
+log() {
+    echo -e "${BLUE}🔍 $1${NC}"
+}
+
+log_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+log_warning() {
+    echo -e "${YELLOW}⚠️ $1${NC}"
+}
+
+log_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+# Function to check if Gemini is available
+check_gemini_availability() {
+    if ! command -v gemini &> /dev/null; then
+        log_error "Gemini CLI not found. Please install it first."
+        return 1
+    fi
+    
+    if [ ! -f "$STYLEGUIDE_FILE" ]; then
+        log_error "Styleguide file not found: $STYLEGUIDE_FILE"
+        return 1
+    fi
+    
+    if [ ! -f "$CONFIG_FILE" ]; then
+        log_error "Config file not found: $CONFIG_FILE"
+        return 1
+    fi
+    
+    return 0
+}
+
+# Function to get git changes
+get_git_changes() {
+    local base_branch="${1:-main}"
+    local output_file="$2"
+    
+    log "Detecting changes from $base_branch..."
+    
+    # Get list of changed files
+    local changed_files=$(git diff --name-only "$base_branch"...HEAD 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null || echo "")
+    
+    if [ -z "$changed_files" ]; then
+        log_warning "No changes detected. Using staged/unstaged changes."
+        changed_files=$(git diff --name-only HEAD 2>/dev/null || echo "")
+    fi
+    
+    if [ -z "$changed_files" ]; then
+        log_warning "No changes found. Analyzing recent commits."
+        changed_files=$(git diff --name-only HEAD~3..HEAD 2>/dev/null || echo "")
+    fi
+    
+    # Filter out ignored patterns from .gemini/config.yaml
+    local filtered_files=""
+    while IFS= read -r file; do
+        if [[ -n "$file" ]] && should_include_file "$file"; then
+            filtered_files="$filtered_files\n$file"
+        fi
+    done <<< "$changed_files"
+    
+    if [ -z "$filtered_files" ]; then
+        log_error "No relevant files found for review after filtering."
+        return 1
+    fi
+    
+    # Get the actual diff content
+    echo "# Git Changes Analysis" > "$output_file"
+    echo "" >> "$output_file"
+    echo "## Changed Files:" >> "$output_file"
+    echo -e "$filtered_files" | grep -v '^$' >> "$output_file"
+    echo "" >> "$output_file"
+    echo "## Detailed Changes:" >> "$output_file"
+    echo "" >> "$output_file"
+    
+    # Add diff content for each file
+    echo -e "$filtered_files" | grep -v '^$' | while IFS= read -r file; do
+        if [ -f "$file" ]; then
+            echo "### $file" >> "$output_file"
+            echo '```diff' >> "$output_file"
+            git diff "$base_branch"...HEAD -- "$file" 2>/dev/null || git diff HEAD~1 -- "$file" 2>/dev/null || echo "No diff available" >> "$output_file"
+            echo '```' >> "$output_file"
+            echo "" >> "$output_file"
+        fi
+    done
+    
+    log_success "Changes detected and saved to $output_file"
+    return 0
+}
+
+# Function to check if file should be included based on ignore patterns
+should_include_file() {
+    local file="$1"
+    
+    # Check against ignore patterns from config
+    if [[ "$file" == *.g.dart ]] || 
+       [[ "$file" == *.g.freezed.dart ]] || 
+       [[ "$file" == *.mocks.dart ]] || 
+       [[ "$file" == *l10n/generated/* ]] || 
+       [[ "$file" == *l10n/languages/* ]]; then
+        return 1
+    fi
+    
+    # Only include Dart files and relevant config files
+    if [[ "$file" == *.dart ]] || 
+       [[ "$file" == *.yaml ]] || 
+       [[ "$file" == *.yml ]] || 
+       [[ "$file" == pubspec.* ]] || 
+       [[ "$file" == *.md ]]; then
+        return 0
+    fi
+    
+    return 1
+}
+
+# Function to generate Gemini code review
+generate_gemini_review() {
+    local changes_file="$1"
+    local output_file="$2"
+    
+    log "Generating code review with Gemini..."
+    
+    # Create the prompt
+    local prompt="You are an expert Flutter/Dart code reviewer. Please review the following code changes according to the provided styleguide and provide specific, actionable feedback.
+
+STYLEGUIDE:
+$(cat "$STYLEGUIDE_FILE")
+
+CODE CHANGES:
+$(cat "$changes_file")
+
+Please provide a comprehensive code review following the emoji + tag format specified in the styleguide. Focus on:
+1. Architecture violations
+2. Memory management issues
+3. Security concerns
+4. Performance problems
+5. Code quality improvements
+6. Best practices adherence
+
+Format your response in markdown with proper code blocks and follow the review comment structure from the styleguide."
+    
+    # Generate review using Gemini
+    if echo "$prompt" | gemini > "$output_file" 2>/dev/null; then
+        log_success "Code review generated successfully"
+        return 0
+    else
+        log_error "Failed to generate code review with Gemini"
+        echo "# Code Review Generation Failed" > "$output_file"
+        echo "" >> "$output_file"
+        echo "Unable to generate code review at this time. Please check your Gemini configuration." >> "$output_file"
+        return 1
+    fi
+}
+
+# Function to convert markdown to HTML
+convert_to_html() {
+    local markdown_file="$1"
+    local html_file="$2"
+    local title="${3:-Gemini Code Review}"
+    
+    log "Converting review to HTML format..."
+    
+    # Check if template exists
+    if [ ! -f "$REVIEW_TEMPLATE" ]; then
+        log_warning "Template not found. Creating basic HTML structure."
+        create_review_template
+    fi
+    
+    # Convert markdown to HTML using Python script
+    if command -v python3 &> /dev/null; then
+        python3 "$(dirname "$SCRIPT_DIR")/utils/markdown_to_html.py" "$markdown_file" -o "$html_file" -t "$REVIEW_TEMPLATE" --title "$title"
+    else
+        # Fallback: create basic HTML
+        create_basic_html "$markdown_file" "$html_file" "$title"
+    fi
+    
+    log_success "HTML review generated: $html_file"
+}
+
+# Function to create review template if it doesn't exist
+create_review_template() {
+    mkdir -p "$(dirname "$REVIEW_TEMPLATE")"
+    
+    cat > "$REVIEW_TEMPLATE" << EOF
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            color: #e0e0e0;
+            background-color: #1a1a1a;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #2d2d2d;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #ffffff;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        h1 {
+            border-bottom: 2px solid #4a9eff;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #666;
+            padding-bottom: 5px;
+        }
+        pre {
+            background: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        code {
+            background: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+            color: #f8f8f2;
+        }
+        pre code {
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        blockquote {
+            border-left: 4px solid #4a9eff;
+            margin: 20px 0;
+            padding: 10px 20px;
+            background: #2a2a2a;
+            border-radius: 0 4px 4px 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #3a3a3a;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background: #2a2a2a;
+        }
+        .emoji {
+            font-size: 1.2em;
+        }
+        .tag {
+            font-weight: bold;
+            color: #4a9eff;
+        }
+        .critical {
+            background: #ff4444;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .warning {
+            background: #ffaa00;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .suggestion {
+            background: #00aa44;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        details {
+            margin: 10px 0;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 10px;
+            background: #2a2a2a;
+        }
+        summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: #4a9eff;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #4a9eff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Coverage Report</a>
+        <h1>{{TITLE}}</h1>
+        <div class="content">
+            {{CONTENT}}
+        </div>
+    </div>
+</body>
+</html>
+EOF
+}
+
+# Function to create basic HTML fallback
+create_basic_html() {
+    local markdown_file="$1"
+    local html_file="$2"
+    local title="$3"
+    
+    # Simple markdown to HTML conversion
+    {
+        echo "<!DOCTYPE html>"
+        echo "<html><head><title>$title</title></head><body>"
+        echo "<h1>$title</h1>"
+        echo "<pre>"
+        cat "$markdown_file"
+        echo "</pre>"
+        echo "</body></html>"
+    } > "$html_file"
+}
+
+# Function to add code review link to coverage report
+add_code_review_link_to_coverage_report() {
+    local output_dir="$1"
+    local coverage_html="$output_dir/html/index.html"
+    
+    if [ -f "$coverage_html" ]; then
+        # Simple sed replacement to add code review link before </body>
+        sed -i.bak "s|</body>|<table width=\"100%\" border=0 cellspacing=0 cellpadding=0><tr><td class=\"ruler\"><img src=\"glass.png\" width=3 height=3></td></tr><tr><td class=\"versionInfo\" style=\"text-align: center; padding: 20px;\"><a href=\"code_review.html\" style=\"background: white; color: #333; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; border: 1px solid #ddd;\">🔍 View Gemini Code Review</a></td></tr></table><br></body>|" "$coverage_html"
+        rm "$coverage_html.bak"
+        echo -e "${GREEN}✨ Code review link added to coverage report${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Coverage HTML file not found: $coverage_html${NC}"
+    fi
+}
+
+# Main function to process code review
+process_code_review() {
+    local output_dir="$1"
+    local package_name="$2"
+    local modified_files="$3"
+    local script_dir="$4"
+    
+    echo -e "${BLUE}Starting Gemini code review generation...${NC}"
+    
+    # Check prerequisites
+    if ! check_gemini_availability; then
+        return 1
+    fi
+    
+    # Create output directory
+    mkdir -p "$output_dir"
+    
+    # Generate temporary files
+    local changes_file=$(mktemp)
+    local review_md="$output_dir/code_review.md"
+    local review_html="$output_dir/html/code_review.html"
+    
+    # Ensure HTML directory exists
+    mkdir -p "$output_dir/html"
+    
+    # Get git changes
+    if ! get_git_changes "main" "$changes_file"; then
+        echo -e "${RED}❌ Failed to detect changes${NC}"
+        rm -f "$changes_file"
+        return 1
+    fi
+    
+    # Generate review
+    if ! generate_gemini_review "$changes_file" "$review_md"; then
+        echo -e "${RED}❌ Failed to generate code review${NC}"
+        rm -f "$changes_file"
+        return 1
+    fi
+    
+    # Convert to HTML
+    convert_to_html "$review_md" "$review_html" "Gemini Code Review"
+    
+    # Add link to coverage report
+    add_code_review_link_to_coverage_report "$output_dir"
+    
+    # Cleanup
+    rm -f "$changes_file"
+    
+    echo -e "${GREEN}✅ Code review generation complete!${NC}"
+    echo -e "${CYAN}📄 Markdown review: $review_md${NC}"
+    echo -e "${CYAN}🌐 HTML review: $review_html${NC}"
+    
+    return 0
+}
+
+
+
+# Export functions for use in other scripts
+export -f process_code_review
+export -f add_code_review_link_to_coverage_report
+export -f check_gemini_availability
