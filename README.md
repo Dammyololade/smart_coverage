@@ -110,13 +110,13 @@ smart_coverage analyze --skip-tests --lcov-file coverage/lcov.info
 
 #### AI-Powered Features
 
-- `--ai`: **Enable AI-powered insights generation**
+- `--test-insights`: **Enable AI-powered insights generation**
   - **Features**: Generates intelligent analysis of coverage patterns
   - **Tip**: Requires AI service configuration (see Configuration section)
 
 - `--code-review`: **Generate AI-powered code review**
   - **Features**: Creates detailed code review based on coverage data
-  - **Tip**: Best used with `--ai` flag for comprehensive analysis
+  - **Tip**: Best used with `--test-insights` flag for comprehensive analysis
 
 #### Output and Formatting
 
@@ -149,14 +149,14 @@ smart_coverage analyze --base-branch main --output-formats html
 # Full AI-powered analysis
 smart_coverage analyze \
   --base-branch origin/main \
-  --ai \
+  --test-insights \
   --code-review \
   --output-formats console,html,json
 
 # Quick AI insights on existing coverage
 smart_coverage analyze \
   --skip-tests \
-  --ai \
+  --test-insights \
   --lcov-file coverage/lcov.info
 ```
 
@@ -195,7 +195,7 @@ package_path: "."
 base_branch: "origin/main"
 output_dir: "coverage_reports"
 skip_tests: false
-ai_insights: true
+test_insights: true
 code_review: true
 dark_mode: true
 output_formats:
@@ -213,7 +213,7 @@ ai_config:
 2. **Performance**: Use `--skip-tests` when you have fresh coverage data to speed up analysis
 3. **CI Integration**: Use `--output-formats json` for machine-readable output in CI/CD
 4. **Large Projects**: Consider analyzing specific packages with `--package-path`
-5. **AI Features**: Ensure proper AI service configuration before using `--ai` or `--code-review`
+5. **AI Features**: Ensure proper AI service configuration before using `--test-insights` or `--code-review`
 6. **Report Viewing**: HTML reports provide the most detailed and visual coverage analysis
 
 ## 🧪 Generating Coverage Data

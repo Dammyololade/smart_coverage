@@ -121,7 +121,7 @@ class ConfigServiceImpl implements ConfigService {
     }
 
     // Validate AI configuration
-    if (config.aiInsights || config.codeReview) {
+    if (config.testInsights || config.codeReview) {
       final aiErrors = _validateAiConfig(config.aiConfig);
       errors.addAll(aiErrors);
     }
@@ -172,7 +172,7 @@ class ConfigServiceImpl implements ConfigService {
       '${envPrefix}BASE_BRANCH': 'baseBranch',
       '${envPrefix}OUTPUT_DIR': 'outputDir',
       '${envPrefix}SKIP_TESTS': 'skipTests',
-      '${envPrefix}AI_INSIGHTS': 'aiInsights',
+      '${envPrefix}TEST_INSIGHTS': 'testInsights',
       '${envPrefix}CODE_REVIEW': 'codeReview',
       '${envPrefix}DARK_MODE': 'darkMode',
       '${envPrefix}OUTPUT_FORMATS': 'outputFormats',
@@ -204,7 +204,7 @@ class ConfigServiceImpl implements ConfigService {
       'baseBranch': null,
       'outputDir': 'coverage_reports',
       'skipTests': false,
-      'aiInsights': false,
+      'testInsights': false,
       'codeReview': false,
       'darkMode': false,
       'outputFormats': ['console'],
@@ -254,7 +254,7 @@ class ConfigServiceImpl implements ConfigService {
       baseBranch: config['baseBranch'] as String? ?? 'main',
       outputDir: config['outputDir'] as String? ?? 'coverage_reports',
       skipTests: config['skipTests'] as bool? ?? false,
-      aiInsights: config['aiInsights'] as bool? ?? false,
+      testInsights: config['testInsights'] as bool? ?? false,
       codeReview: config['codeReview'] as bool? ?? false,
       darkMode: config['darkMode'] as bool? ?? false,
       outputFormats: _parseOutputFormats(config['outputFormats']),
@@ -282,7 +282,7 @@ class ConfigServiceImpl implements ConfigService {
       'baseBranch': config.baseBranch,
       'outputDir': config.outputDir,
       'skipTests': config.skipTests,
-      'aiInsights': config.aiInsights,
+      'testInsights': config.testInsights,
       'codeReview': config.codeReview,
       'darkMode': config.darkMode,
       'outputFormats': config.outputFormats,

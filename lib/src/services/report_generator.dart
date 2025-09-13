@@ -26,6 +26,9 @@ abstract class ReportGenerator {
 
   /// Generate all reports based on configuration
   Future<void> generateReports(CoverageData data, SmartCoverageConfig config);
+
+  /// Add navigation buttons to HTML report
+  Future<void> addNavigationButtons(String outputDir);
 }
 
 /// {@template report_generator_impl}
@@ -276,13 +279,74 @@ class ReportGeneratorImpl implements ReportGenerator {
 
       // Execute genhtml command
       final result = await Process.run('genhtml', args);
-
       if (result.exitCode != 0) {
         throw Exception('genhtml failed: ${result.stderr}');
       }
     } finally {
       // Clean up temporary directory
       await tempDir.delete(recursive: true);
+    }
+  }
+
+  @override
+  Future<void> addNavigationButtons(String outputDir) async {
+    await _addNavigationButtons(outputDir);
+  }
+
+  /// Add navigation buttons to the main index.html file
+  Future<void> _addNavigationButtons(String outputDir) async {
+    final indexFile = File('$outputDir/index.html');
+    if (!await indexFile.exists()) return;
+
+    final content = await indexFile.readAsString();
+
+    // Check if AI-generated files exist
+    final aiInsightsExists = await File('$outputDir/ai_insights.html').exists();
+    final codeReviewExists = await File('$outputDir/code_review.html').exists();
+
+    // Only proceed if at least one AI-generated file exists
+    if (!aiInsightsExists && !codeReviewExists) return;
+
+    // Create navigation buttons HTML with center alignment
+    final navigationButtons = StringBuffer();
+    navigationButtons.writeln(
+      '    <div style="margin: 20px auto; padding: 15px; background: var(--bg-secondary, #21262d); border-radius: 8px; border-left: 4px solid var(--accent-color, #58a6ff); max-width: 800px; text-align: center; border: 1px solid var(--border-color, #30363d);">',
+    );
+    navigationButtons.writeln(
+      '      <h3 style="margin: 0 0 15px 0; color: var(--text-primary, #e6edf3);">🤖 AI-Generated Reports</h3>',
+    );
+    navigationButtons.writeln(
+      '      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">',
+    );
+
+    if (aiInsightsExists) {
+      navigationButtons.writeln(
+        '        <a href="ai_insights.html" style="display: inline-block; padding: 12px 20px; background: var(--success-color, #238636); color: var(--button-text, #ffffff); text-decoration: none; border-radius: 6px; font-weight: bold; transition: all 0.3s; border: 1px solid var(--success-border, #2ea043);">📊 AI Insights</a>',
+      );
+    }
+
+    if (codeReviewExists) {
+      navigationButtons.writeln(
+        '        <a href="code_review.html" style="display: inline-block; padding: 12px 20px; background: var(--info-color, #0969da); color: var(--button-text, #ffffff); text-decoration: none; border-radius: 6px; font-weight: bold; transition: all 0.3s; border: 1px solid var(--info-border, #0550ae);">🔍 Code Review</a>',
+      );
+    }
+
+    navigationButtons.writeln('      </div>');
+    navigationButtons.writeln('    </div>');
+
+    // Find the insertion point (after the main coverage table)
+    final headerEndPattern = RegExp(r'</table>\s*</center>\s*<br>');
+    final match = headerEndPattern.firstMatch(content);
+
+    if (match != null) {
+      final insertionPoint = match.end;
+      final modifiedContent =
+          content.substring(0, insertionPoint) +
+          '\n' +
+          navigationButtons.toString() +
+          content.substring(insertionPoint);
+
+      await indexFile.writeAsString(modifiedContent);
     }
   }
 

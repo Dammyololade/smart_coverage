@@ -70,7 +70,7 @@ graph TD
 | `smart_coverage analyze <package_path>` | Main analysis command for coverage processing |
 | `smart_coverage --help` | Display help information and usage examples |
 | `smart_coverage --version` | Show version information |
-| `smart_coverage analyze --ai` | Run analysis with AI insights enabled |
+| `smart_coverage analyze --test-insights` | Run analysis with AI-powered test insights generation |
 | `smart_coverage analyze --code-review` | Run analysis with code review generation |
 | `smart_coverage analyze --skip-tests` | Use existing coverage data without running tests |
 
@@ -226,7 +226,7 @@ class SmartCoverageConfig {
   final String baseBranch;
   final String outputDir;
   final bool skipTests;
-  final bool aiInsights;
+  final bool testInsights;
   final bool codeReview;
   final bool darkMode;
   final List<String> outputFormats;
