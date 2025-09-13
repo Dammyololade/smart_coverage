@@ -19,10 +19,12 @@ class AnalyzeCommand extends Command<int> {
     ReportGenerator? reportGenerator,
   }) : _logger = logger,
        _configService = configService ?? const ConfigServiceImpl(),
-       _coverageProcessor = coverageProcessor ?? const CoverageProcessorImpl(
-         fileDetector: FileDetectorImpl(),
-         lcovParser: LcovParserImpl(),
-       ),
+       _coverageProcessor =
+           coverageProcessor ??
+           const CoverageProcessorImpl(
+             fileDetector: FileDetectorImpl(),
+             lcovParser: LcovParserImpl(),
+           ),
        _reportGenerator = reportGenerator ?? const ReportGeneratorImpl() {
     argParser
       ..addOption(
@@ -82,7 +84,8 @@ class AnalyzeCommand extends Command<int> {
   }
 
   @override
-  String get description => 'Analyze coverage data for modified files with optional AI insights.';
+  String get description =>
+      'Analyze coverage data for modified files with optional AI insights.';
 
   @override
   String get name => 'analyze';
@@ -100,7 +103,7 @@ class AnalyzeCommand extends Command<int> {
       // 1. Load and validate configuration
       final config = await _loadConfiguration();
       final validationErrors = await _configService.validateConfig(config);
-      
+
       if (validationErrors.isNotEmpty) {
         _logger.err('❌ Configuration validation failed:');
         for (final error in validationErrors) {
@@ -109,13 +112,14 @@ class AnalyzeCommand extends Command<int> {
         return ExitCode.config.code;
       }
 
-      _logger.detail('Package path: ${config.packagePath}');
-      _logger.detail('Base branch: ${config.baseBranch ?? "all files"}');
-      _logger.detail('Output directory: ${config.outputDir}');
-      _logger.detail('Skip tests: ${config.skipTests}');
-      _logger.detail('AI insights: ${config.aiInsights}');
-      _logger.detail('Code review: ${config.codeReview}');
-      _logger.detail('Output formats: ${config.outputFormats.join(", ")}');
+      _logger
+        ..detail('Package path: ${config.packagePath}')
+        ..detail('Base branch: ${config.baseBranch}')
+        ..detail('Output directory: ${config.outputDir}')
+        ..detail('Skip tests: ${config.skipTests}')
+        ..detail('AI insights: ${config.aiInsights}')
+        ..detail('Code review: ${config.codeReview}')
+        ..detail('Output formats: ${config.outputFormats.join(", ")}');
 
       // 2. Run tests if not skipped
       final lcovFile = argResults!['lcov-file'] as String;
@@ -134,7 +138,9 @@ class AnalyzeCommand extends Command<int> {
 
       // 5. Display summary (console output)
       if (config.outputFormats.contains('console')) {
-        final consoleOutput = _reportGenerator.generateConsoleOutput(coverageData);
+        final consoleOutput = _reportGenerator.generateConsoleOutput(
+          coverageData,
+        );
         _logger.info(consoleOutput);
       }
 
@@ -152,7 +158,7 @@ class AnalyzeCommand extends Command<int> {
   /// Load configuration from multiple sources
   Future<SmartCoverageConfig> _loadConfiguration() async {
     final cliArgs = <String, dynamic>{};
-    
+
     // Extract CLI arguments
     if (argResults!.wasParsed('package-path')) {
       cliArgs['packagePath'] = argResults!['package-path'];
@@ -188,100 +194,116 @@ class AnalyzeCommand extends Command<int> {
   /// Run tests to generate coverage data
   Future<void> _runTests(String packagePath, String lcovFile) async {
     _logger.info('🧪 Running tests to generate coverage data...');
-    
+
     try {
       // Ensure coverage directory exists
       final coverageDir = Directory(path.dirname(lcovFile));
-      if (!await coverageDir.exists()) {
+      if (!coverageDir.existsSync()) {
         await coverageDir.create(recursive: true);
       }
-      
+
       // Detect if this is a Flutter project
       final pubspecFile = File(path.join(packagePath, 'pubspec.yaml'));
       var isFlutterProject = false;
-      
-      if (await pubspecFile.exists()) {
+
+      if (pubspecFile.existsSync()) {
         final pubspecContent = await pubspecFile.readAsString();
-        isFlutterProject = pubspecContent.contains('flutter:') || 
-                          pubspecContent.contains('flutter_test:');
+        isFlutterProject =
+            pubspecContent.contains('flutter:') ||
+            pubspecContent.contains('flutter_test:');
       }
-      
+
       // Use appropriate test command based on project type
       final testCommand = isFlutterProject ? 'flutter' : 'dart';
-      final testArgs = isFlutterProject 
+      final testArgs = isFlutterProject
           ? ['test', '--coverage']
           : ['test', '--coverage=coverage'];
-      
-      _logger.info('Detected ${isFlutterProject ? "Flutter" : "Dart"} project, using $testCommand test');
-      
+
+      _logger.info(
+        "Detected ${isFlutterProject ? "Flutter" : "Dart"} project, using $testCommand test",
+      );
+
       // Run dart test with coverage
       final testResult = await Process.run(
-      testCommand,
-      testArgs,
-      workingDirectory: packagePath,
-    );
-      
+        testCommand,
+        testArgs,
+        workingDirectory: packagePath,
+      );
+
       if (testResult.exitCode != 0) {
         final stderr = testResult.stderr.toString().trim();
         final stdout = testResult.stdout.toString().trim();
-        _logger.err('Test stdout: $stdout');
-        _logger.err('Test stderr: $stderr');
-        throw Exception('Test execution failed with exit code ${testResult.exitCode}');
+        _logger
+          ..err('Test stdout: $stdout')
+          ..err('Test stderr: $stderr');
+        throw Exception(
+          'Test execution failed with exit code ${testResult.exitCode}',
+        );
       }
-      
+
       // Format coverage data to LCOV format
       _logger.info('📊 Formatting coverage data...');
-      
+
       if (isFlutterProject) {
         // For Flutter projects, coverage is already in LCOV format
-        final flutterLcovFile = File(path.join(packagePath, 'coverage', 'lcov.info'));
-        final targetLcovFile = File(lcovFile);
-        
+        final flutterLcovFile = File(
+          path.join(packagePath, 'coverage', 'lcov.info'),
+        );
+
         // Check if Flutter coverage file exists and copy it
-        if (await flutterLcovFile.exists()) {
+        if (flutterLcovFile.existsSync()) {
           await flutterLcovFile.copy(lcovFile);
         } else {
-          throw Exception('Flutter coverage file not found at: ${flutterLcovFile.path}');
+          throw Exception(
+            'Flutter coverage file not found at: ${flutterLcovFile.path}',
+          );
         }
       } else {
         // For Dart projects, check if lcov.info already exists
-        final dartLcovFile = File(path.join(packagePath, 'coverage', 'lcov.info'));
-        
-        if (await dartLcovFile.exists()) {
+        final dartLcovFile = File(
+          path.join(packagePath, 'coverage', 'lcov.info'),
+        );
+
+        if (dartLcovFile.existsSync()) {
           // Use existing lcov.info file
-          final targetLcovFile = File(lcovFile);
           await dartLcovFile.copy(lcovFile);
         } else {
           // Use format_coverage to convert JSON to LCOV
           final formatResult = await Process.run(
             'dart',
             [
-              'pub', 'global', 'run', 'coverage:format_coverage',
+              'pub',
+              'global',
+              'run',
+              'coverage:format_coverage',
               '--lcov',
               '--in=coverage',
               '--out=$lcovFile',
               '--packages=.dart_tool/package_config.json',
-              '--report-on=lib'
+              '--report-on=lib',
             ],
             workingDirectory: packagePath,
           );
-          
+
           if (formatResult.exitCode != 0) {
             final stderr = formatResult.stderr.toString().trim();
             final stdout = formatResult.stdout.toString().trim();
-            _logger.err('Format stdout: $stdout');
-            _logger.err('Format stderr: $stderr');
-            throw Exception('Coverage formatting failed with exit code ${formatResult.exitCode}');
+            _logger
+              ..err('Format stdout: $stdout')
+              ..err('Format stderr: $stderr');
+            throw Exception(
+              'Coverage formatting failed with exit code ${formatResult.exitCode}',
+            );
           }
         }
       }
-      
+
       // Check if LCOV file was generated
       final lcovFileObj = File(lcovFile);
-      if (!await lcovFileObj.exists()) {
+      if (!lcovFileObj.existsSync()) {
         throw Exception('LCOV file was not generated at: $lcovFile');
       }
-      
+
       _logger.success('✅ Tests completed and coverage data generated.');
     } catch (e) {
       _logger.err('❌ Failed to run tests: $e');
@@ -293,8 +315,8 @@ class AnalyzeCommand extends Command<int> {
   Future<void> _autoOpenReport(SmartCoverageConfig config) async {
     final htmlReportPath = path.join(config.outputDir, 'index.html');
     final htmlFile = File(htmlReportPath);
-    
-    if (await htmlFile.exists() && config.outputFormats.contains('html')) {
+
+    if (htmlFile.existsSync() && config.outputFormats.contains('html')) {
       try {
         String command;
         if (Platform.isMacOS) {
@@ -307,7 +329,7 @@ class AnalyzeCommand extends Command<int> {
           _logger.info('📄 HTML report generated at: $htmlReportPath');
           return;
         }
-        
+
         final result = await Process.run(command, [htmlReportPath]);
         if (result.exitCode == 0) {
           _logger.info('🌐 Opening HTML report in default browser...');
@@ -319,5 +341,4 @@ class AnalyzeCommand extends Command<int> {
       }
     }
   }
-
 }

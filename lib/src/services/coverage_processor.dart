@@ -52,7 +52,9 @@ class CoverageProcessorImpl implements CoverageProcessor {
     final workingDir = packagePath ?? '.';
 
     // Validate package structure
-    final isValidPackage = await fileDetector.validatePackageStructure(workingDir);
+    final isValidPackage = await fileDetector.validatePackageStructure(
+      workingDir,
+    );
     if (!isValidPackage) {
       throw ArgumentError('Invalid Dart package structure at: $workingDir');
     }
@@ -78,12 +80,12 @@ class CoverageProcessorImpl implements CoverageProcessor {
       );
     }
 
-    // Generate include patterns for modified files
-    final includePatterns = fileDetector.generateIncludePatterns(modifiedFiles);
-
     // Parse LCOV data and filter by modified files
     final allCoverageData = await lcovParser.parseFile(lcovPath);
-    final coverageData = lcovParser.filterByFiles(allCoverageData, modifiedFiles);
+    final coverageData = lcovParser.filterByFiles(
+      allCoverageData,
+      modifiedFiles,
+    );
 
     return coverageData;
   }
@@ -96,7 +98,9 @@ class CoverageProcessorImpl implements CoverageProcessor {
     final workingDir = packagePath ?? '.';
 
     // Validate package structure
-    final isValidPackage = await fileDetector.validatePackageStructure(workingDir);
+    final isValidPackage = await fileDetector.validatePackageStructure(
+      workingDir,
+    );
     if (!isValidPackage) {
       throw ArgumentError('Invalid Dart package structure at: $workingDir');
     }
@@ -113,28 +117,23 @@ class CoverageProcessorImpl implements CoverageProcessor {
     required SmartCoverageConfig config,
   }) async {
     // Validate package structure
-    final isValidPackage = await fileDetector.validatePackageStructure(config.packagePath);
+    final isValidPackage = await fileDetector.validatePackageStructure(
+      config.packagePath,
+    );
     if (!isValidPackage) {
-      throw ArgumentError('Invalid Dart package structure at: ${config.packagePath}');
-    }
-
-    // Determine processing mode based on configuration
-    if (config.baseBranch == null) {
-      // No base branch specified, process all files
-      return processAllFilesCoverage(
-        lcovPath: lcovPath,
-        packagePath: config.packagePath,
+      throw ArgumentError(
+        'Invalid Dart package structure at: ${config.packagePath}',
       );
     }
-    
+
     try {
       // Try to process modified files only
       final modifiedCoverage = await processModifiedFilesCoverage(
         lcovPath: lcovPath,
-        baseBranch: config.baseBranch!,
+        baseBranch: config.baseBranch,
         packagePath: config.packagePath,
       );
-      
+
       // If no modified files found, fall back to processing all files
       if (modifiedCoverage.files.isEmpty) {
         return processAllFilesCoverage(
@@ -142,11 +141,12 @@ class CoverageProcessorImpl implements CoverageProcessor {
           packagePath: config.packagePath,
         );
       }
-      
+
       return modifiedCoverage;
     } catch (e) {
       // If Git is not available or fails, fall back to processing all files
-      if (e.toString().contains('Not a Git repository') || e.toString().contains('Git command failed')) {
+      if (e.toString().contains('Not a Git repository') ||
+          e.toString().contains('Git command failed')) {
         return processAllFilesCoverage(
           lcovPath: lcovPath,
           packagePath: config.packagePath,
@@ -154,7 +154,7 @@ class CoverageProcessorImpl implements CoverageProcessor {
       }
       rethrow;
     }
-    }
+  }
 
   /// Get coverage statistics for a specific file
   Future<FileCoverage?> getFileCoverage({
@@ -185,24 +185,30 @@ class CoverageProcessorImpl implements CoverageProcessor {
 
     // Calculate delta (simplified implementation)
     final deltaFiles = <FileCoverage>[];
-    final baseFileMap = {for (final file in baseCoverage.files) file.path: file};
+    final baseFileMap = {
+      for (final file in baseCoverage.files) file.path: file,
+    };
 
     for (final currentFile in currentCoverage.files) {
       final baseFile = baseFileMap[currentFile.path];
       if (baseFile != null) {
         // Calculate line coverage delta
         final deltaLines = <LineCoverage>[];
-        final baseLineMap = {for (final line in baseFile.lines) line.lineNumber: line};
+        final baseLineMap = {
+          for (final line in baseFile.lines) line.lineNumber: line,
+        };
 
         for (final currentLine in currentFile.lines) {
           final baseLine = baseLineMap[currentLine.lineNumber];
           if (baseLine != null) {
             final deltaHitCount = currentLine.hitCount - baseLine.hitCount;
             if (deltaHitCount != 0) {
-              deltaLines.add(LineCoverage(
-                lineNumber: currentLine.lineNumber,
-                hitCount: deltaHitCount,
-              ));
+              deltaLines.add(
+                LineCoverage(
+                  lineNumber: currentLine.lineNumber,
+                  hitCount: deltaHitCount,
+                ),
+              );
             }
           } else {
             // New line in current coverage
@@ -211,11 +217,13 @@ class CoverageProcessorImpl implements CoverageProcessor {
         }
 
         if (deltaLines.isNotEmpty) {
-          deltaFiles.add(FileCoverage(
-            path: currentFile.path,
-            lines: deltaLines,
-            summary: _calculateFileSummary(deltaLines),
-          ));
+          deltaFiles.add(
+            FileCoverage(
+              path: currentFile.path,
+              lines: deltaLines,
+              summary: _calculateFileSummary(deltaLines),
+            ),
+          );
         }
       } else {
         // New file in current coverage
@@ -237,7 +245,8 @@ class CoverageProcessorImpl implements CoverageProcessor {
     return CoverageSummary(
       linesFound: linesFound,
       linesHit: linesHit,
-      functionsFound: 0, // Not available in line-level data
+      functionsFound: 0,
+      // Not available in line-level data
       functionsHit: 0,
       branchesFound: 0,
       branchesHit: 0,

@@ -87,7 +87,9 @@ class ConfigServiceImpl implements ConfigService {
         // Check for pubspec.yaml
         final pubspecFile = File('${config.packagePath}/pubspec.yaml');
         if (!await pubspecFile.exists()) {
-          errors.add('No pubspec.yaml found in package path: ${config.packagePath}');
+          errors.add(
+            'No pubspec.yaml found in package path: ${config.packagePath}',
+          );
         }
       }
     }
@@ -112,7 +114,9 @@ class ConfigServiceImpl implements ConfigService {
     const validFormats = ['console', 'html', 'json', 'lcov'];
     for (final format in config.outputFormats) {
       if (!validFormats.contains(format)) {
-        errors.add('Invalid output format: $format. Valid formats: ${validFormats.join(', ')}');
+        errors.add(
+          'Invalid output format: $format. Valid formats: ${validFormats.join(', ')}',
+        );
       }
     }
 
@@ -129,7 +133,7 @@ class ConfigServiceImpl implements ConfigService {
   Future<void> saveConfig(SmartCoverageConfig config, String filePath) async {
     final configMap = _configToMap(config);
     final yamlString = _mapToYamlString(configMap);
-    
+
     final file = File(filePath);
     await file.writeAsString(yamlString);
   }
@@ -144,14 +148,16 @@ class ConfigServiceImpl implements ConfigService {
     try {
       final content = await file.readAsString();
       final yamlDoc = loadYaml(content);
-      
+
       if (yamlDoc is Map) {
         return Map<String, dynamic>.from(yamlDoc);
       }
-      
+
       return null;
     } catch (e) {
-      throw FormatException('Invalid YAML configuration file: $filePath. Error: $e');
+      throw FormatException(
+        'Invalid YAML configuration file: $filePath. Error: $e',
+      );
     }
   }
 
@@ -224,7 +230,7 @@ class ConfigServiceImpl implements ConfigService {
     Map<String, dynamic> override,
   ) {
     final result = Map<String, dynamic>.from(base);
-    
+
     for (final entry in override.entries) {
       if (entry.value is Map && result[entry.key] is Map) {
         result[entry.key] = _mergeConfigs(
@@ -235,14 +241,14 @@ class ConfigServiceImpl implements ConfigService {
         result[entry.key] = entry.value;
       }
     }
-    
+
     return result;
   }
 
   /// Convert configuration map to SmartCoverageConfig object
   SmartCoverageConfig _mapToConfig(Map<String, dynamic> config) {
     final aiConfigMap = config['aiConfig'] as Map<String, dynamic>? ?? {};
-    
+
     return SmartCoverageConfig(
       packagePath: config['packagePath'] as String? ?? '.',
       baseBranch: config['baseBranch'] as String? ?? 'main',
@@ -263,7 +269,8 @@ class ConfigServiceImpl implements ConfigService {
         cliArgs: _parseStringList(aiConfigMap['cliArgs']) ?? [],
         cliTimeout: aiConfigMap['cliTimeout'] as int? ?? 60,
         fallbackEnabled: aiConfigMap['fallbackEnabled'] as bool? ?? true,
-        fallbackOrder: _parseStringList(aiConfigMap['fallbackOrder']) ?? ['local', 'api'],
+        fallbackOrder:
+            _parseStringList(aiConfigMap['fallbackOrder']) ?? ['local', 'api'],
       ),
     );
   }
@@ -320,11 +327,11 @@ class ConfigServiceImpl implements ConfigService {
     // Try to parse as boolean
     if (value.toLowerCase() == 'true') return true;
     if (value.toLowerCase() == 'false') return false;
-    
+
     // Try to parse as integer
     final intValue = int.tryParse(value);
     if (intValue != null) return intValue;
-    
+
     // Return as string
     return value;
   }
@@ -333,12 +340,12 @@ class ConfigServiceImpl implements ConfigService {
   void _setNestedValue(Map<String, dynamic> map, String key, dynamic value) {
     final keys = key.split('.');
     var current = map;
-    
+
     for (var i = 0; i < keys.length - 1; i++) {
       current[keys[i]] ??= <String, dynamic>{};
       current = current[keys[i]] as Map<String, dynamic>;
     }
-    
+
     current[keys.last] = value;
   }
 
@@ -350,11 +357,15 @@ class ConfigServiceImpl implements ConfigService {
   }
 
   /// Write YAML map with proper indentation
-  void _writeYamlMap(StringBuffer buffer, Map<String, dynamic> map, int indent) {
+  void _writeYamlMap(
+    StringBuffer buffer,
+    Map<String, dynamic> map,
+    int indent,
+  ) {
     for (final entry in map.entries) {
       buffer.write('  ' * indent);
       buffer.write('${entry.key}:');
-      
+
       if (entry.value is Map) {
         buffer.writeln();
         _writeYamlMap(buffer, entry.value as Map<String, dynamic>, indent + 1);
@@ -373,36 +384,42 @@ class ConfigServiceImpl implements ConfigService {
   /// Validate AI configuration
   List<String> _validateAiConfig(AiConfig aiConfig) {
     final errors = <String>[];
-    
+
     // Validate provider
     const validProviders = ['gemini', 'openai', 'claude', 'local'];
     if (!validProviders.contains(aiConfig.provider)) {
-      errors.add('Invalid AI provider: ${aiConfig.provider}. Valid providers: ${validProviders.join(', ')}');
+      errors.add(
+        'Invalid AI provider: ${aiConfig.provider}. Valid providers: ${validProviders.join(', ')}',
+      );
     }
-    
+
     // Validate provider type
     const validProviderTypes = ['api', 'local', 'auto'];
     if (!validProviderTypes.contains(aiConfig.providerType)) {
-      errors.add('Invalid AI provider type: ${aiConfig.providerType}. Valid types: ${validProviderTypes.join(', ')}');
+      errors.add(
+        'Invalid AI provider type: ${aiConfig.providerType}. Valid types: ${validProviderTypes.join(', ')}',
+      );
     }
-    
+
     // Validate timeout values
     if (aiConfig.timeout <= 0) {
       errors.add('AI timeout must be positive: ${aiConfig.timeout}');
     }
-    
+
     if (aiConfig.cliTimeout <= 0) {
       errors.add('AI CLI timeout must be positive: ${aiConfig.cliTimeout}');
     }
-    
+
     // Validate fallback order
     const validFallbackTypes = ['api', 'local'];
     for (final fallback in aiConfig.fallbackOrder) {
       if (!validFallbackTypes.contains(fallback)) {
-        errors.add('Invalid fallback type: $fallback. Valid types: ${validFallbackTypes.join(', ')}');
+        errors.add(
+          'Invalid fallback type: $fallback. Valid types: ${validFallbackTypes.join(', ')}',
+        );
       }
     }
-    
+
     return errors;
   }
 }

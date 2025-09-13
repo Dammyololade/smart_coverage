@@ -4,7 +4,6 @@ import 'package:test/test.dart';
 
 // Mock implementations for testing
 class MockFileDetector implements FileDetector {
-
   MockFileDetector({
     List<String>? modifiedFiles,
     List<String>? allFiles,
@@ -17,7 +16,10 @@ class MockFileDetector implements FileDetector {
   final bool _mockValidPackage;
 
   @override
-  Future<List<String>> detectModifiedFiles(String baseBranch, {String? packagePath}) async {
+  Future<List<String>> detectModifiedFiles(
+    String baseBranch, {
+    String? packagePath,
+  }) async {
     return _mockModifiedFiles;
   }
 
@@ -38,8 +40,8 @@ class MockFileDetector implements FileDetector {
 }
 
 class MockLcovParser implements LcovParser {
-
   MockLcovParser(this._mockCoverageData);
+
   final CoverageData _mockCoverageData;
 
   @override
@@ -47,7 +49,6 @@ class MockLcovParser implements LcovParser {
     return _mockCoverageData;
   }
 
-  @override
   Future<CoverageData> parseLcovFile(String filePath) async {
     return _mockCoverageData;
   }
@@ -62,7 +63,7 @@ class MockLcovParser implements LcovParser {
     final filteredFiles = data.files
         .where((file) => files.contains(file.path))
         .toList();
-    
+
     // Calculate summary from filtered files
     var totalLinesFound = 0;
     var totalLinesHit = 0;
@@ -70,7 +71,7 @@ class MockLcovParser implements LcovParser {
     var totalFunctionsHit = 0;
     var totalBranchesFound = 0;
     var totalBranchesHit = 0;
-    
+
     for (final file in filteredFiles) {
       totalLinesFound += file.summary.linesFound;
       totalLinesHit += file.summary.linesHit;
@@ -79,18 +80,18 @@ class MockLcovParser implements LcovParser {
       totalBranchesFound += file.summary.branchesFound;
       totalBranchesHit += file.summary.branchesHit;
     }
-    
+
     return CoverageData(
-          files: filteredFiles,
-          summary: CoverageSummary(
-            linesFound: totalLinesFound,
-            linesHit: totalLinesHit,
-            functionsFound: totalFunctionsFound,
-            functionsHit: totalFunctionsHit,
-            branchesFound: totalBranchesFound,
-            branchesHit: totalBranchesHit,
-          ),
-        );
+      files: filteredFiles,
+      summary: CoverageSummary(
+        linesFound: totalLinesFound,
+        linesHit: totalLinesHit,
+        functionsFound: totalFunctionsFound,
+        functionsHit: totalFunctionsHit,
+        branchesFound: totalBranchesFound,
+        branchesHit: totalBranchesHit,
+      ),
+    );
   }
 }
 
@@ -162,11 +163,15 @@ void main() {
 
       mockFileDetector = MockFileDetector(
         modifiedFiles: ['lib/src/service1.dart', 'lib/src/service2.dart'],
-        allFiles: ['lib/src/service1.dart', 'lib/src/service2.dart', 'test/service1_test.dart'],
+        allFiles: [
+          'lib/src/service1.dart',
+          'lib/src/service2.dart',
+          'test/service1_test.dart',
+        ],
       );
-      
+
       mockLcovParser = MockLcovParser(mockCoverageData);
-      
+
       processor = CoverageProcessorImpl(
         fileDetector: mockFileDetector,
         lcovParser: mockLcovParser,
@@ -175,18 +180,6 @@ void main() {
 
     group('processModifiedFilesCoverage', () {
       test('should process coverage for modified files only', () async {
-        const config = SmartCoverageConfig(
-          packagePath: '/test/package',
-          baseBranch: 'main',
-          outputDir: '/test/output',
-          skipTests: false,
-          aiInsights: false,
-          codeReview: false,
-          darkMode: false,
-          outputFormats: ['console'],
-          aiConfig: AiConfig(provider: 'gemini'),
-        );
-
         final result = await processor.processModifiedFilesCoverage(
           lcovPath: '/test/coverage.info',
           baseBranch: 'main',
@@ -194,10 +187,13 @@ void main() {
         );
 
         expect(result.files, hasLength(2));
-        expect(result.files.map((f) => f.path), containsAll([
-          'lib/src/service1.dart',
-          'lib/src/service2.dart',
-        ]));
+        expect(
+          result.files.map((f) => f.path),
+          containsAll([
+            'lib/src/service1.dart',
+            'lib/src/service2.dart',
+          ]),
+        );
         expect(result.summary.linesFound, equals(5)); // 3 + 2
         expect(result.summary.linesHit, equals(4)); // 2 + 2
       });
@@ -221,18 +217,6 @@ void main() {
           lcovParser: emptyLcovParser,
         );
 
-        const config = SmartCoverageConfig(
-          packagePath: '/test/package',
-          baseBranch: 'main',
-          outputDir: '/test/output',
-          skipTests: false,
-          aiInsights: false,
-          codeReview: false,
-          darkMode: false,
-          outputFormats: ['console'],
-          aiConfig: AiConfig(provider: 'gemini'),
-        );
-
         final result = await emptyProcessor.processModifiedFilesCoverage(
           lcovPath: '/test/coverage.info',
           baseBranch: 'main',
@@ -250,18 +234,6 @@ void main() {
           lcovParser: mockLcovParser,
         );
 
-        const config = SmartCoverageConfig(
-          packagePath: '/invalid/package',
-          baseBranch: 'main',
-          outputDir: '/test/output',
-          skipTests: false,
-          aiInsights: false,
-          codeReview: false,
-          darkMode: false,
-          outputFormats: ['console'],
-          aiConfig: AiConfig(provider: 'gemini'),
-        );
-
         expect(
           () => invalidProcessor.processModifiedFilesCoverage(
             lcovPath: '/test/coverage.info',
@@ -275,29 +247,20 @@ void main() {
 
     group('processAllFilesCoverage', () {
       test('should process coverage for all Dart files', () async {
-        const config = SmartCoverageConfig(
-          packagePath: '/test/package',
-          baseBranch: 'main',
-          outputDir: '/test/output',
-          skipTests: false,
-          aiInsights: false,
-          codeReview: false,
-          darkMode: false,
-          outputFormats: ['console'],
-          aiConfig: AiConfig(provider: 'gemini'),
-        );
-
         final result = await processor.processAllFilesCoverage(
           lcovPath: '/test/coverage.info',
           packagePath: '/test/package',
         );
 
         expect(result.files, hasLength(3));
-        expect(result.files.map((f) => f.path), containsAll([
-          'lib/src/service1.dart',
-          'lib/src/service2.dart',
-          'test/service1_test.dart',
-        ]));
+        expect(
+          result.files.map((f) => f.path),
+          containsAll([
+            'lib/src/service1.dart',
+            'lib/src/service2.dart',
+            'test/service1_test.dart',
+          ]),
+        );
         expect(result.summary.linesFound, equals(6)); // 3 + 2 + 1
         expect(result.summary.linesHit, equals(5)); // 2 + 2 + 1
       });
@@ -321,18 +284,6 @@ void main() {
           lcovParser: emptyLcovParser,
         );
 
-        const config = SmartCoverageConfig(
-          packagePath: '/test/package',
-          baseBranch: 'main',
-          outputDir: '/test/output',
-          skipTests: false,
-          aiInsights: false,
-          codeReview: false,
-          darkMode: false,
-          outputFormats: ['console'],
-          aiConfig: AiConfig(provider: 'gemini'),
-        );
-
         final result = await emptyProcessor.processAllFilesCoverage(
           lcovPath: '/test/coverage.info',
           packagePath: '/test/package',
@@ -346,7 +297,8 @@ void main() {
     // processCustomFiles method doesn't exist in implementation
     // These tests have been removed
 
-    // Helper methods tests removed as getFileCoverage method doesn't exist in the interface
+    // Helper methods tests removed as
+    // getFileCoverage method doesn't exist in the interface
 
     group('error handling', () {
       test('should handle LCOV parsing errors', () async {
@@ -363,22 +315,10 @@ void main() {
             ),
           ), // Empty data to simulate error
         );
-        
+
         final errorProcessor = CoverageProcessorImpl(
           fileDetector: mockFileDetector,
           lcovParser: errorParser,
-        );
-
-        const config = SmartCoverageConfig(
-          packagePath: '/test/package',
-          baseBranch: 'main',
-          outputDir: '/test/output',
-          skipTests: false,
-          aiInsights: false,
-          codeReview: false,
-          darkMode: false,
-          outputFormats: ['console'],
-          aiConfig: AiConfig(provider: 'gemini'),
         );
 
         // Should not throw, but return empty data
@@ -395,22 +335,10 @@ void main() {
         final errorFileDetector = MockFileDetector(
           modifiedFiles: [], // Empty to simulate no files found
         );
-        
+
         final errorProcessor = CoverageProcessorImpl(
           fileDetector: errorFileDetector,
           lcovParser: mockLcovParser,
-        );
-
-        const config = SmartCoverageConfig(
-          packagePath: '/test/package',
-          baseBranch: 'main',
-          outputDir: '/test/output',
-          skipTests: false,
-          aiInsights: false,
-          codeReview: false,
-          darkMode: false,
-          outputFormats: ['console'],
-          aiConfig: AiConfig(provider: 'gemini'),
         );
 
         final result = await errorProcessor.processModifiedFilesCoverage(
@@ -424,70 +352,71 @@ void main() {
     });
 
     group('performance tests', () {
-      test('should handle large coverage data efficiently', () async {
-        // Create large mock coverage data
-        final largeCoverageData = CoverageData(
-          files: List.generate(1000, (index) => FileCoverage(
-            path: 'lib/src/file_$index.dart',
-            lines: List.generate(100, (lineIndex) => LineCoverage(
-              lineNumber: lineIndex + 1,
-              hitCount: lineIndex % 2,
-            )),
+      test(
+        'should handle large coverage data efficiently',
+        () async {
+          // Create large mock coverage data
+          final largeCoverageData = CoverageData(
+            files: List.generate(
+              1000,
+              (index) => FileCoverage(
+                path: 'lib/src/file_$index.dart',
+                lines: List.generate(
+                  100,
+                  (lineIndex) => LineCoverage(
+                    lineNumber: lineIndex + 1,
+                    hitCount: lineIndex % 2,
+                  ),
+                ),
+                summary: const CoverageSummary(
+                  linesFound: 100,
+                  linesHit: 50,
+                  functionsFound: 0,
+                  functionsHit: 0,
+                  branchesFound: 0,
+                  branchesHit: 0,
+                ),
+              ),
+            ),
             summary: const CoverageSummary(
-              linesFound: 100,
-              linesHit: 50,
+              linesFound: 100000,
+              linesHit: 50000,
               functionsFound: 0,
               functionsHit: 0,
               branchesFound: 0,
               branchesHit: 0,
             ),
-          )),
-          summary: const CoverageSummary(
-            linesFound: 100000,
-            linesHit: 50000,
-            functionsFound: 0,
-            functionsHit: 0,
-            branchesFound: 0,
-            branchesHit: 0,
-          ),
-        );
+          );
 
-        final largeFileDetector = MockFileDetector(
-          modifiedFiles: List.generate(1000, (index) => 'lib/src/file_$index.dart'),
-        );
-        
-        final largeProcessor = CoverageProcessorImpl(
-          fileDetector: largeFileDetector,
-          lcovParser: MockLcovParser(largeCoverageData),
-        );
+          final largeFileDetector = MockFileDetector(
+            modifiedFiles: List.generate(
+              1000,
+              (index) => 'lib/src/file_$index.dart',
+            ),
+          );
 
-        const config = SmartCoverageConfig(
-          packagePath: '/test/package',
-          baseBranch: 'main',
-          outputDir: '/test/output',
-          skipTests: false,
-          aiInsights: false,
-          codeReview: false,
-          darkMode: false,
-          outputFormats: ['console'],
-          aiConfig: AiConfig(provider: 'gemini'),
-        );
+          final largeProcessor = CoverageProcessorImpl(
+            fileDetector: largeFileDetector,
+            lcovParser: MockLcovParser(largeCoverageData),
+          );
 
-        final stopwatch = Stopwatch()..start();
-        final result = await largeProcessor.processModifiedFilesCoverage(
-          lcovPath: '/test/coverage.info',
-          baseBranch: 'main',
-          packagePath: '/test/package',
-        );
-        stopwatch.stop();
+          final stopwatch = Stopwatch()..start();
+          final result = await largeProcessor.processModifiedFilesCoverage(
+            lcovPath: '/test/coverage.info',
+            baseBranch: 'main',
+            packagePath: '/test/package',
+          );
+          stopwatch.stop();
 
-        expect(result.files, hasLength(1000));
-        expect(result.summary.linesFound, equals(100000)); // 1000 * 100
-        expect(result.summary.linesHit, equals(50000)); // 1000 * 50
-        
-        // Should complete in reasonable time (under 2 seconds)
-        expect(stopwatch.elapsedMilliseconds, lessThan(2000));
-      }, timeout: const Timeout(Duration(seconds: 5)));
+          expect(result.files, hasLength(1000));
+          expect(result.summary.linesFound, equals(100000)); // 1000 * 100
+          expect(result.summary.linesHit, equals(50000)); // 1000 * 50
+
+          // Should complete in reasonable time (under 2 seconds)
+          expect(stopwatch.elapsedMilliseconds, lessThan(2000));
+        },
+        timeout: const Timeout(Duration(seconds: 5)),
+      );
     });
   });
 }

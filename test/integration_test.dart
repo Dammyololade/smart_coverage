@@ -15,7 +15,7 @@ void main() {
     setUp(() async {
       tempDir = await Directory.systemTemp.createTemp('smart_coverage_test');
       tempLcovFile = File('${tempDir.path}/coverage.info');
-      
+
       // Create a sample LCOV file
       await tempLcovFile.writeAsString('''
 TN:
@@ -56,12 +56,12 @@ end_of_record
       // Test LCOV parsing
       const parser = LcovParserImpl();
       final coverageData = await parser.parseFile(tempLcovFile.path);
-      
+
       expect(coverageData.files, hasLength(1));
       expect(coverageData.files.first.path, equals('lib/src/example.dart'));
       expect(coverageData.summary.linesFound, equals(10));
       expect(coverageData.summary.linesHit, equals(8));
-      
+
       // Test report generation
       const reportGenerator = ReportGeneratorImpl();
       final config = SmartCoverageConfig(
@@ -75,9 +75,9 @@ end_of_record
         outputFormats: ['console'],
         aiConfig: const AiConfig(provider: 'gemini'),
       );
-      
+
       await reportGenerator.generateReports(coverageData, config);
-      
+
       // Verify console output was generated (no exception thrown)
       expect(coverageData.summary.linePercentage, equals(80.0));
     });
@@ -87,10 +87,10 @@ end_of_record
       final libDir = Directory('${tempDir.path}/lib');
       await libDir.create();
       await File('${libDir.path}/main.dart').writeAsString('void main() {}');
-      
+
       const detector = FileDetectorImpl();
       final dartFiles = await detector.getAllDartFiles(tempDir.path);
-      
+
       expect(dartFiles, isNotEmpty);
       expect(dartFiles.any((file) => file.endsWith('main.dart')), isTrue);
     });
@@ -100,7 +100,7 @@ end_of_record
       final libDir = Directory('${tempDir.path}/lib/src');
       await libDir.create(recursive: true);
       await File('${libDir.path}/example.dart').writeAsString('void main() {}');
-      
+
       // Create pubspec.yaml
       await File('${tempDir.path}/pubspec.yaml').writeAsString('''
 name: test_package
@@ -108,17 +108,17 @@ version: 1.0.0
 environment:
   sdk: '>=2.17.0 <4.0.0'
 ''');
-      
+
       const processor = CoverageProcessorImpl(
         fileDetector: FileDetectorImpl(),
         lcovParser: LcovParserImpl(),
       );
-      
+
       final result = await processor.processAllFilesCoverage(
         lcovPath: tempLcovFile.path,
         packagePath: tempDir.path,
       );
-      
+
       expect(result.files, hasLength(1));
       expect(result.files.first.path, equals('lib/src/example.dart'));
       expect(result.summary.linesFound, equals(10));

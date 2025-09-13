@@ -5,7 +5,10 @@ import 'dart:io';
 /// {@endtemplate}
 abstract class FileDetector {
   /// Detect modified files compared to base branch
-  Future<List<String>> detectModifiedFiles(String baseBranch, {String? packagePath});
+  Future<List<String>> detectModifiedFiles(
+    String baseBranch, {
+    String? packagePath,
+  });
 
   /// Generate LCOV include patterns for modified files
   List<String> generateIncludePatterns(List<String> modifiedFiles);
@@ -25,9 +28,12 @@ class FileDetectorImpl implements FileDetector {
   const FileDetectorImpl();
 
   @override
-  Future<List<String>> detectModifiedFiles(String baseBranch, {String? packagePath}) async {
+  Future<List<String>> detectModifiedFiles(
+    String baseBranch, {
+    String? packagePath,
+  }) async {
     final workingDir = packagePath ?? Directory.current.path;
-    
+
     // Check if we're in a Git repository
     final gitDir = Directory('$workingDir/.git');
     if (!await gitDir.exists()) {
@@ -50,16 +56,21 @@ class FileDetectorImpl implements FileDetector {
           ['diff', '--name-only', 'HEAD'],
           workingDirectory: workingDir,
         );
-        
+
         if (fallbackResult.exitCode != 0) {
           // Final fallback: return all Dart files
           return await getAllDartFiles(workingDir);
         }
-        
-        return _filterDartFiles(fallbackResult.stdout.toString().trim().split('\n'));
+
+        return _filterDartFiles(
+          fallbackResult.stdout.toString().trim().split('\n'),
+        );
       }
 
-      final modifiedFiles = result.stdout.toString().trim().split('\n')
+      final modifiedFiles = result.stdout
+          .toString()
+          .trim()
+          .split('\n')
           .where((file) => file.isNotEmpty)
           .toList();
 
@@ -70,9 +81,12 @@ class FileDetectorImpl implements FileDetector {
           ['diff', '--name-only', 'HEAD'],
           workingDirectory: workingDir,
         );
-        
+
         if (fallbackResult.exitCode == 0) {
-          final uncommittedFiles = fallbackResult.stdout.toString().trim().split('\n')
+          final uncommittedFiles = fallbackResult.stdout
+              .toString()
+              .trim()
+              .split('\n')
               .where((file) => file.isNotEmpty)
               .toList();
           return _filterDartFiles(uncommittedFiles);
@@ -89,7 +103,7 @@ class FileDetectorImpl implements FileDetector {
   @override
   List<String> generateIncludePatterns(List<String> modifiedFiles) {
     final patterns = <String>[];
-    
+
     for (final file in modifiedFiles) {
       if (file.endsWith('.dart')) {
         // Convert file path to LCOV pattern
@@ -98,7 +112,9 @@ class FileDetectorImpl implements FileDetector {
           // For absolute paths, extract from 'lib' onwards if it contains 'lib'
           final libIndex = file.indexOf('/lib/');
           if (libIndex != -1) {
-            final pathFromLib = file.substring(libIndex + 1); // +1 to skip the leading slash
+            final pathFromLib = file.substring(
+              libIndex + 1,
+            ); // +1 to skip the leading slash
             patterns.add('**/$pathFromLib');
           } else {
             // If no 'lib' directory, just use the filename
@@ -118,7 +134,7 @@ class FileDetectorImpl implements FileDetector {
         }
       }
     }
-    
+
     return patterns;
   }
 
@@ -177,11 +193,17 @@ class FileDetectorImpl implements FileDetector {
   List<String> _filterDartFiles(List<String> files) {
     return files
         .where((file) => file.isNotEmpty && file.endsWith('.dart'))
-        .where((file) => !file.startsWith('.dart_tool/')) // Exclude generated files
+        .where(
+          (file) => !file.startsWith('.dart_tool/'),
+        ) // Exclude generated files
         .where((file) => !file.startsWith('build/')) // Exclude build directory
-        .where((file) => !file.contains('/generated/')) // Exclude generated files
+        .where(
+          (file) => !file.contains('/generated/'),
+        ) // Exclude generated files
         .where((file) => !file.endsWith('.g.dart')) // Exclude generated files
-        .where((file) => !file.endsWith('.freezed.dart')) // Exclude generated files
+        .where(
+          (file) => !file.endsWith('.freezed.dart'),
+        ) // Exclude generated files
         .toList();
   }
 }
