@@ -69,7 +69,7 @@ end_of_record
         baseBranch: 'main',
         outputDir: '${tempDir.path}/output',
         skipTests: false,
-        aiInsights: false,
+        testInsights: false,
         codeReview: false,
         darkMode: false,
         outputFormats: ['console'],

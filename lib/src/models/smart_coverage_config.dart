@@ -8,7 +8,7 @@ class SmartCoverageConfig {
     required this.baseBranch,
     required this.outputDir,
     required this.skipTests,
-    required this.aiInsights,
+    required this.testInsights,
     required this.codeReview,
     required this.darkMode,
     required this.outputFormats,
@@ -27,8 +27,8 @@ class SmartCoverageConfig {
   /// Whether to skip running tests
   final bool skipTests;
 
-  /// Whether to generate AI insights
-  final bool aiInsights;
+  /// Whether to generate test insights
+  final bool testInsights;
 
   /// Whether to generate code review
   final bool codeReview;
@@ -48,7 +48,7 @@ class SmartCoverageConfig {
     String? baseBranch,
     String? outputDir,
     bool? skipTests,
-    bool? aiInsights,
+    bool? testInsights,
     bool? codeReview,
     bool? darkMode,
     List<String>? outputFormats,
@@ -59,7 +59,7 @@ class SmartCoverageConfig {
       baseBranch: baseBranch ?? this.baseBranch,
       outputDir: outputDir ?? this.outputDir,
       skipTests: skipTests ?? this.skipTests,
-      aiInsights: aiInsights ?? this.aiInsights,
+      testInsights: testInsights ?? this.testInsights,
       codeReview: codeReview ?? this.codeReview,
       darkMode: darkMode ?? this.darkMode,
       outputFormats: outputFormats ?? this.outputFormats,

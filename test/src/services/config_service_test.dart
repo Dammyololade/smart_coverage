@@ -32,7 +32,7 @@ outputFormats:
   - html
   - json
 skipTests: false
-aiInsights: true
+testInsights: true
 codeReview: false
 darkMode: false
 aiConfig:
@@ -53,7 +53,7 @@ aiConfig:
           containsAll(['console', 'html', 'json']),
         );
         expect(configMap['skipTests'], isFalse);
-        expect(configMap['aiInsights'], isTrue);
+        expect(configMap['testInsights'], isTrue);
         expect(configMap['aiConfig']['provider'], equals('openai'));
         expect(configMap['aiConfig']['model'], equals('gpt-4'));
       });
@@ -128,7 +128,7 @@ environment:
           baseBranch: 'main',
           outputDir: '${tempDir.path}/output',
           skipTests: false,
-          aiInsights: false,
+          testInsights: false,
           codeReview: false,
           darkMode: false,
           outputFormats: ['console', 'html'],
@@ -145,7 +145,7 @@ environment:
           baseBranch: 'main',
           outputDir: '/output',
           skipTests: false,
-          aiInsights: false,
+          testInsights: false,
           codeReview: false,
           darkMode: false,
           outputFormats: ['console'],
@@ -162,7 +162,7 @@ environment:
           baseBranch: '',
           outputDir: '/output',
           skipTests: false,
-          aiInsights: false,
+          testInsights: false,
           codeReview: false,
           darkMode: false,
           outputFormats: ['console'],
@@ -179,7 +179,7 @@ environment:
           baseBranch: 'main',
           outputDir: '/output',
           skipTests: false,
-          aiInsights: false,
+          testInsights: false,
           codeReview: false,
           darkMode: false,
           outputFormats: [],
@@ -196,7 +196,7 @@ environment:
           baseBranch: 'main',
           outputDir: '/output',
           skipTests: false,
-          aiInsights: false,
+          testInsights: false,
           codeReview: false,
           darkMode: false,
           outputFormats: ['console', 'invalid-format'],
@@ -213,7 +213,7 @@ environment:
           baseBranch: 'main',
           outputDir: '/output',
           skipTests: false,
-          aiInsights: true,
+          testInsights: true,
           codeReview: false,
           darkMode: false,
           outputFormats: ['console'],

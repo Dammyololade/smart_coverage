@@ -5,6 +5,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:smart_coverage/src/models/smart_coverage_config.dart';
+import 'package:smart_coverage/src/models/coverage_data.dart';
 import 'package:smart_coverage/src/services/services.dart';
 
 /// {@template analyze_command}
@@ -17,6 +18,7 @@ class AnalyzeCommand extends Command<int> {
     ConfigService? configService,
     CoverageProcessor? coverageProcessor,
     ReportGenerator? reportGenerator,
+    AiService? aiService,
   }) : _logger = logger,
        _configService = configService ?? const ConfigServiceImpl(),
        _coverageProcessor =
@@ -25,7 +27,8 @@ class AnalyzeCommand extends Command<int> {
              fileDetector: FileDetectorImpl(),
              lcovParser: LcovParserImpl(),
            ),
-       _reportGenerator = reportGenerator ?? const ReportGeneratorImpl() {
+       _reportGenerator = reportGenerator ?? const ReportGeneratorImpl(),
+       _aiService = aiService {
     argParser
       ..addOption(
         'package-path',
@@ -61,8 +64,8 @@ class AnalyzeCommand extends Command<int> {
         negatable: false,
       )
       ..addFlag(
-        'ai',
-        help: 'Enable AI-powered insights generation.',
+        'test-insights',
+        help: 'Enable AI-powered test insights generation.',
         negatable: false,
       )
       ..addFlag(
@@ -94,6 +97,7 @@ class AnalyzeCommand extends Command<int> {
   final ConfigService _configService;
   final CoverageProcessor _coverageProcessor;
   final ReportGenerator _reportGenerator;
+  final AiService? _aiService;
 
   @override
   Future<int> run() async {
@@ -117,7 +121,7 @@ class AnalyzeCommand extends Command<int> {
         ..detail('Base branch: ${config.baseBranch}')
         ..detail('Output directory: ${config.outputDir}')
         ..detail('Skip tests: ${config.skipTests}')
-        ..detail('AI insights: ${config.aiInsights}')
+        ..detail('Test insights: ${config.testInsights}')
         ..detail('Code review: ${config.codeReview}')
         ..detail('Output formats: ${config.outputFormats.join(", ")}');
 
@@ -144,7 +148,17 @@ class AnalyzeCommand extends Command<int> {
         _logger.info(consoleOutput);
       }
 
-      // 6. Auto-open HTML report if generated
+      // 6. Generate AI insights if enabled
+      if (config.testInsights || config.codeReview) {
+        await _generateAiInsights(coverageData, config);
+
+        // Add navigation buttons to HTML report after AI files are generated
+        if (config.outputFormats.contains('html')) {
+          await _reportGenerator.addNavigationButtons(config.outputDir);
+        }
+      }
+
+      // 7. Auto-open HTML report if generated
       await _autoOpenReport(config);
 
       _logger.success('✅ Coverage analysis completed successfully!');
@@ -172,8 +186,8 @@ class AnalyzeCommand extends Command<int> {
     if (argResults!.wasParsed('skip-tests')) {
       cliArgs['skipTests'] = argResults!['skip-tests'];
     }
-    if (argResults!.wasParsed('ai')) {
-      cliArgs['aiInsights'] = argResults!['ai'];
+    if (argResults!.wasParsed('test-insights')) {
+      cliArgs['testInsights'] = argResults!['test-insights'];
     }
     if (argResults!.wasParsed('code-review')) {
       cliArgs['codeReview'] = argResults!['code-review'];
@@ -189,6 +203,95 @@ class AnalyzeCommand extends Command<int> {
       cliArgs: cliArgs,
       configFilePath: argResults!['config'] as String?,
     );
+  }
+
+  /// Generate AI insights and code review
+  Future<void> _generateAiInsights(
+    CoverageData coverageData,
+    SmartCoverageConfig config,
+  ) async {
+    try {
+      // Create AI service if not provided
+      final aiService = _aiService ?? _createAiService(config.aiConfig);
+
+      if (aiService == null) {
+        _logger.warn('⚠️  AI service not configured properly');
+        return;
+      }
+
+      // Check if AI service is available
+      final isAvailable = await aiService.isAvailable();
+      if (!isAvailable) {
+        _logger.warn('⚠️  AI service is not available');
+        return;
+      }
+
+      _logger.info('🤖 Generating AI insights...');
+
+      // Generate insights if requested
+      if (config.testInsights) {
+        final insights = await aiService.generateInsights(coverageData);
+        _logger.info('\n📊 AI Coverage Insights:');
+        _logger.info(insights);
+
+        // Generate HTML file if HTML output is enabled
+        if (config.outputFormats.contains('html')) {
+          final htmlPath = path.join(config.outputDir, 'ai_insights.html');
+          try {
+            await aiService.generateInsightsHtml(coverageData, htmlPath);
+            _logger.success('📄 AI insights HTML report generated: $htmlPath');
+          } catch (e) {
+            _logger.warn('⚠️  Failed to generate AI insights HTML: $e');
+          }
+        }
+      }
+
+      // Generate code review if requested
+      if (config.codeReview) {
+        final modifiedFiles = coverageData.files.map((f) => f.path).toList();
+        final codeReview = await aiService.generateCodeReview(
+          coverageData,
+          modifiedFiles,
+        );
+        _logger.info('\n🔍 AI Code Review:');
+        _logger.info(codeReview);
+
+        // Generate HTML file if HTML output is enabled
+        if (config.outputFormats.contains('html')) {
+          final htmlPath = path.join(config.outputDir, 'code_review.html');
+          try {
+            await aiService.generateCodeReviewHtml(
+              coverageData,
+              modifiedFiles,
+              htmlPath,
+            );
+            _logger.success('📄 Code review HTML report generated: $htmlPath');
+          } catch (e) {
+            _logger.warn('⚠️  Failed to generate code review HTML: $e');
+          }
+        }
+      }
+    } catch (error) {
+      _logger.warn('⚠️  Failed to generate AI insights: $error');
+    }
+  }
+
+  /// Create AI service based on configuration
+  AiService? _createAiService(AiConfig? aiConfig) {
+    if (aiConfig == null) return null;
+
+    try {
+      // For now, only support Gemini CLI
+      if (aiConfig.provider.toLowerCase() == 'gemini') {
+        return GeminiCliService(aiConfig);
+      }
+
+      _logger.warn('⚠️  Unsupported AI provider: ${aiConfig.provider}');
+      return null;
+    } catch (error) {
+      _logger.warn('⚠️  Failed to create AI service: $error');
+      return null;
+    }
   }
 
   /// Run tests to generate coverage data

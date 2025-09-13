@@ -8,8 +8,8 @@
 /// # analyze coverage for modified files
 /// smart_coverage analyze
 ///
-/// # analyze with AI insights
-/// smart_coverage analyze --ai --code-review
+/// # analyze with test insights
+/// smart_coverage analyze --test-insights --code-review
 ///
 /// # see usage
 /// smart_coverage --help
