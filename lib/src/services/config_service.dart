@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:mason_logger/mason_logger.dart';
 import 'package:smart_coverage/src/models/smart_coverage_config.dart';
+import 'package:smart_coverage/src/services/config_validator.dart';
 import 'package:yaml/yaml.dart';
 
 /// {@template config_service}
@@ -17,8 +19,8 @@ abstract class ConfigService {
     String? configFilePath,
   });
 
-  /// Validate configuration values
-  Future<List<String>> validateConfig(SmartCoverageConfig config);
+  /// Validate configuration with enhanced error messages
+  Future<bool> validateConfig(SmartCoverageConfig config, Logger logger);
 
   /// Save configuration to YAML file
   Future<void> saveConfig(SmartCoverageConfig config, String filePath);
@@ -28,6 +30,9 @@ abstract class ConfigService {
 
   /// Load configuration from environment variables
   Map<String, dynamic> loadEnvConfig();
+
+  /// Generate configuration template
+  String generateConfigTemplate();
 }
 
 /// {@template config_service_impl}
@@ -35,7 +40,11 @@ abstract class ConfigService {
 /// {@endtemplate}
 class ConfigServiceImpl implements ConfigService {
   /// {@macro config_service_impl}
-  const ConfigServiceImpl();
+  const ConfigServiceImpl({
+    ConfigValidator? validator,
+  }) : _validator = validator ?? const ConfigValidatorImpl();
+
+  final ConfigValidator _validator;
 
   /// Default configuration file name
   static const String defaultConfigFile = 'smart_coverage.yaml';
@@ -73,60 +82,13 @@ class ConfigServiceImpl implements ConfigService {
   }
 
   @override
-  Future<List<String>> validateConfig(SmartCoverageConfig config) async {
-    final errors = <String>[];
+  Future<bool> validateConfig(SmartCoverageConfig config, Logger logger) async {
+    return await _validator.validateAndDisplay(config, logger);
+  }
 
-    // Validate package path
-    if (config.packagePath.isEmpty) {
-      errors.add('Package path cannot be empty');
-    } else {
-      final packageDir = Directory(config.packagePath);
-      if (!await packageDir.exists()) {
-        errors.add('Package path does not exist: ${config.packagePath}');
-      } else {
-        // Check for pubspec.yaml
-        final pubspecFile = File('${config.packagePath}/pubspec.yaml');
-        if (!await pubspecFile.exists()) {
-          errors.add(
-            'No pubspec.yaml found in package path: ${config.packagePath}',
-          );
-        }
-      }
-    }
-
-    // Validate base branch (if provided)
-    if (config.baseBranch.isEmpty) {
-      errors.add('Base branch cannot be empty when specified');
-    }
-
-    // Validate output directory
-    if (config.outputDir.isEmpty) {
-      errors.add('Output directory cannot be empty');
-    } else {
-      final outputDir = Directory(config.outputDir);
-      final parentDir = outputDir.parent;
-      if (!await parentDir.exists()) {
-        errors.add('Output directory parent does not exist: ${parentDir.path}');
-      }
-    }
-
-    // Validate output formats
-    const validFormats = ['console', 'html', 'json', 'lcov'];
-    for (final format in config.outputFormats) {
-      if (!validFormats.contains(format)) {
-        errors.add(
-          'Invalid output format: $format. Valid formats: ${validFormats.join(', ')}',
-        );
-      }
-    }
-
-    // Validate AI configuration
-    if (config.testInsights || config.codeReview) {
-      final aiErrors = _validateAiConfig(config.aiConfig);
-      errors.addAll(aiErrors);
-    }
-
-    return errors;
+  @override
+  String generateConfigTemplate() {
+    return _validator.generateConfigTemplate();
   }
 
   @override
@@ -382,44 +344,4 @@ class ConfigServiceImpl implements ConfigService {
   }
 
   /// Validate AI configuration
-  List<String> _validateAiConfig(AiConfig aiConfig) {
-    final errors = <String>[];
-
-    // Validate provider
-    const validProviders = ['gemini', 'openai', 'claude', 'local'];
-    if (!validProviders.contains(aiConfig.provider)) {
-      errors.add(
-        'Invalid AI provider: ${aiConfig.provider}. Valid providers: ${validProviders.join(', ')}',
-      );
-    }
-
-    // Validate provider type
-    const validProviderTypes = ['api', 'local', 'auto'];
-    if (!validProviderTypes.contains(aiConfig.providerType)) {
-      errors.add(
-        'Invalid AI provider type: ${aiConfig.providerType}. Valid types: ${validProviderTypes.join(', ')}',
-      );
-    }
-
-    // Validate timeout values
-    if (aiConfig.timeout <= 0) {
-      errors.add('AI timeout must be positive: ${aiConfig.timeout}');
-    }
-
-    if (aiConfig.cliTimeout <= 0) {
-      errors.add('AI CLI timeout must be positive: ${aiConfig.cliTimeout}');
-    }
-
-    // Validate fallback order
-    const validFallbackTypes = ['api', 'local'];
-    for (final fallback in aiConfig.fallbackOrder) {
-      if (!validFallbackTypes.contains(fallback)) {
-        errors.add(
-          'Invalid fallback type: $fallback. Valid types: ${validFallbackTypes.join(', ')}',
-        );
-      }
-    }
-
-    return errors;
-  }
 }

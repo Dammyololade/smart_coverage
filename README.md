@@ -118,6 +118,13 @@ smart_coverage analyze --skip-tests --lcov-file coverage/lcov.info
   - **Features**: Creates detailed code review based on coverage data
   - **Tip**: Best used with `--test-insights` flag for comprehensive analysis
 
+#### Performance Optimization
+
+- `--profile`: **Enable performance profiling and optimization**
+  - **Features**: Monitors operation duration, memory usage, and provides optimization recommendations
+  - **Benefits**: Identifies bottlenecks in large codebases and suggests performance improvements
+  - **Tip**: Use with `--verbose` to export detailed performance reports
+
 #### Output and Formatting
 
 - `--output-formats <formats>`: **Output formats to generate** (default: `console`)
@@ -186,6 +193,29 @@ smart_coverage analyze \
   --base-branch origin/develop
 ```
 
+#### Performance Profiling for Large Codebases
+
+```sh
+# Enable performance monitoring
+smart_coverage analyze \
+  --base-branch origin/main \
+  --profile
+
+# Detailed performance analysis with export
+smart_coverage analyze \
+  --base-branch origin/main \
+  --profile \
+  --verbose \
+  --output-formats console,html
+
+# Profile large projects with optimization recommendations
+smart_coverage analyze \
+  --package-path ./large_project \
+  --base-branch main \
+  --profile \
+  --skip-tests
+```
+
 ### 🛠️ Configuration File
 
 Create a `smart_coverage.yaml` file for consistent settings:
@@ -197,6 +227,7 @@ output_dir: "coverage_reports"
 skip_tests: false
 test_insights: true
 code_review: true
+profile: false  # Enable performance profiling
 dark_mode: true
 output_formats:
   - "console"
@@ -215,6 +246,8 @@ ai_config:
 4. **Large Projects**: Consider analyzing specific packages with `--package-path`
 5. **AI Features**: Ensure proper AI service configuration before using `--test-insights` or `--code-review`
 6. **Report Viewing**: HTML reports provide the most detailed and visual coverage analysis
+7. **Performance Profiling**: Use `--profile` for large codebases (1000+ files) to get optimization recommendations
+8. **Memory Optimization**: Performance profiling helps identify memory bottlenecks and suggests batch processing improvements
 
 ## 🧪 Generating Coverage Data
 

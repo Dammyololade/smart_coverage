@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:mason_logger/mason_logger.dart';
 import 'package:smart_coverage/src/models/models.dart';
 import 'package:smart_coverage/src/services/services.dart';
 import 'package:test/test.dart';
@@ -8,10 +9,12 @@ void main() {
   group('ConfigServiceImpl', () {
     late ConfigService configService;
     late Directory tempDir;
+    late Logger logger;
 
     setUp(() async {
       configService = const ConfigServiceImpl();
       tempDir = await Directory.systemTemp.createTemp('config_service_test');
+      logger = Logger();
     });
 
     tearDown(() async {
@@ -135,8 +138,8 @@ environment:
           aiConfig: const AiConfig(provider: 'gemini'),
         );
 
-        final errors = await configService.validateConfig(config);
-        expect(errors, isEmpty);
+        final isValid = await configService.validateConfig(config, logger);
+        expect(isValid, isTrue);
       });
 
       test('should reject empty package path', () async {
@@ -152,8 +155,8 @@ environment:
           aiConfig: AiConfig(provider: 'gemini'),
         );
 
-        final errors = await configService.validateConfig(config);
-        expect(errors, isNotEmpty);
+        final isValid = await configService.validateConfig(config, logger);
+        expect(isValid, isFalse);
       });
 
       test('should reject empty base branch', () async {
@@ -169,8 +172,8 @@ environment:
           aiConfig: AiConfig(provider: 'gemini'),
         );
 
-        final errors = await configService.validateConfig(config);
-        expect(errors, isNotEmpty);
+        final isValid = await configService.validateConfig(config, logger);
+        expect(isValid, isFalse);
       });
 
       test('should reject empty output formats', () async {
@@ -186,8 +189,8 @@ environment:
           aiConfig: AiConfig(provider: 'gemini'),
         );
 
-        final errors = await configService.validateConfig(config);
-        expect(errors, isNotEmpty);
+        final isValid = await configService.validateConfig(config, logger);
+        expect(isValid, isFalse);
       });
 
       test('should reject invalid output formats', () async {
@@ -203,8 +206,8 @@ environment:
           aiConfig: AiConfig(provider: 'gemini'),
         );
 
-        final errors = await configService.validateConfig(config);
-        expect(errors, isNotEmpty);
+        final isValid = await configService.validateConfig(config, logger);
+        expect(isValid, isFalse);
       });
 
       test('should reject invalid AI configuration when enabled', () async {
@@ -224,8 +227,8 @@ environment:
           ),
         );
 
-        final errors = await configService.validateConfig(config);
-        expect(errors, isNotEmpty);
+        final isValid = await configService.validateConfig(config, logger);
+        expect(isValid, isFalse);
       });
     });
   });

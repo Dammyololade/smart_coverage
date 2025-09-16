@@ -14,5 +14,7 @@ coverage/
 # Android studio and IntelliJ
 .idea
 
-coverage/
 coverage_reports/
+smart_coverage_*.*
+
+.trae/*
