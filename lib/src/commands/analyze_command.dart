@@ -57,7 +57,7 @@ class AnalyzeCommand extends Command<int> {
         'output-dir',
         abbr: 'o',
         help: 'Output directory for generated reports.',
-        defaultsTo: 'coverage_reports',
+        defaultsTo: 'coverage/smart_coverage',
       )
       ..addOption(
         'config',
@@ -97,6 +97,12 @@ class AnalyzeCommand extends Command<int> {
         negatable: false,
       )
       ..addFlag(
+        'debug',
+        abbr: 'd',
+        help: 'Generate debug report file with detailed analysis information.',
+        negatable: false,
+      )
+      ..addFlag(
         'profile',
         help: 'Enable performance profiling and optimization recommendations.',
         negatable: false,
@@ -111,7 +117,7 @@ class AnalyzeCommand extends Command<int> {
 
   @override
   String get description =>
-      'Analyze coverage data for modified files with optional AI insights.';
+      'Analyze coverage data for modified files with optional test insights.';
 
   @override
   String get name => 'analyze';
@@ -131,6 +137,7 @@ class AnalyzeCommand extends Command<int> {
 
     // Enable debug mode if verbose flag is set
     final isVerbose = argResults!['verbose'] as bool;
+    final isDebugEnabled = argResults!['debug'] as bool;
     final isProfileEnabled = argResults!['profile'] as bool;
 
     _debugService.setDebugMode(isVerbose);
@@ -292,7 +299,7 @@ class AnalyzeCommand extends Command<int> {
         _logger.info(consoleOutput);
       }
 
-      // 6. Generate AI insights if enabled
+      // 6. Generate test insights if enabled
       if (config.testInsights || config.codeReview) {
         await _generateAiInsights(coverageData, config);
 
@@ -318,8 +325,10 @@ class AnalyzeCommand extends Command<int> {
 
       if (isVerbose) {
         _debugService.logPerformance('Total analysis time', stopwatch.elapsed);
+      }
 
-        // Generate debug report
+      // Generate debug report only if debug flag is provided
+      if (isDebugEnabled) {
         try {
           final debugReportPath = await _debugService.createDebugReport(
             projectPath: config.packagePath,
@@ -346,8 +355,10 @@ class AnalyzeCommand extends Command<int> {
         _debugService.logDebug(
           'Analysis failed after ${stopwatch.elapsed.inMilliseconds}ms',
         );
+      }
 
-        // Generate debug report for failed analysis
+      // Generate debug report for failed analysis only if debug flag is provided
+      if (isDebugEnabled) {
         try {
           final debugReportPath = await _debugService.createDebugReport(
             projectPath: argResults!['package-path'] as String? ?? '.',
@@ -406,7 +417,7 @@ class AnalyzeCommand extends Command<int> {
     );
   }
 
-  /// Generate AI insights and code review
+  /// Generate test insights and code review
   Future<void> _generateAiInsights(
     CoverageData coverageData,
     SmartCoverageConfig config,
@@ -427,49 +438,75 @@ class AnalyzeCommand extends Command<int> {
         return;
       }
 
-      _logger.info('🤖 Generating AI insights...');
-
       // Generate insights if requested
       if (config.testInsights) {
-        final insights = await aiService.generateInsights(coverageData);
-        _logger.info('\n📊 AI Coverage Insights:');
-        _logger.info(insights);
-
-        // Generate HTML file if HTML output is enabled
-        if (config.outputFormats.contains('html')) {
-          final htmlPath = path.join(config.outputDir, 'ai_insights.html');
-          try {
-            await aiService.generateInsightsHtml(coverageData, htmlPath);
-            _logger.success('📄 AI insights HTML report generated: $htmlPath');
-          } catch (e) {
-            _logger.warn('⚠️  Failed to generate AI insights HTML: $e');
+        final insightsProgress = _debugService.startProgress(
+          '🧠 Generating test insights...',
+        );
+        
+        try {
+          final insights = await aiService.generateInsights(coverageData);
+          insightsProgress.complete('✅ Test insights generated');
+          
+          // Only output to console if console format is enabled
+          if (config.outputFormats.contains('console')) {
+            _logger.info('\n📊 Test Insights:');
+            _logger.info(insights);
           }
+
+          // Generate HTML file if HTML output is enabled
+          if (config.outputFormats.contains('html')) {
+            final htmlPath = path.join(config.outputDir, 'test_insights.html');
+            try {
+              await aiService.generateInsightsHtml(coverageData, htmlPath);
+              _logger.success('📄 Test insights HTML report generated: $htmlPath');
+            } catch (e) {
+              _logger.warn('⚠️  Failed to generate test insights HTML: $e');
+            }
+          }
+        } catch (e) {
+          insightsProgress.fail('❌ Failed to generate test insights');
+          rethrow;
         }
       }
 
       // Generate code review if requested
       if (config.codeReview) {
-        final modifiedFiles = coverageData.files.map((f) => f.path).toList();
-        final codeReview = await aiService.generateCodeReview(
-          coverageData,
-          modifiedFiles,
+        final reviewProgress = _debugService.startProgress(
+          '🔍 Generating code review...',
         );
-        _logger.info('\n🔍 AI Code Review:');
-        _logger.info(codeReview);
-
-        // Generate HTML file if HTML output is enabled
-        if (config.outputFormats.contains('html')) {
-          final htmlPath = path.join(config.outputDir, 'code_review.html');
-          try {
-            await aiService.generateCodeReviewHtml(
-              coverageData,
-              modifiedFiles,
-              htmlPath,
-            );
-            _logger.success('📄 Code review HTML report generated: $htmlPath');
-          } catch (e) {
-            _logger.warn('⚠️  Failed to generate code review HTML: $e');
+        
+        try {
+          final modifiedFiles = coverageData.files.map((f) => f.path).toList();
+          final codeReview = await aiService.generateCodeReview(
+            coverageData,
+            modifiedFiles,
+          );
+          reviewProgress.complete('✅ Code review generated');
+          
+          // Only output to console if console format is enabled
+          if (config.outputFormats.contains('console')) {
+            _logger.info('\n🔍 Code Review:');
+            _logger.info(codeReview);
           }
+
+          // Generate HTML file if HTML output is enabled
+          if (config.outputFormats.contains('html')) {
+            final htmlPath = path.join(config.outputDir, 'code_review.html');
+            try {
+              await aiService.generateCodeReviewHtml(
+                coverageData,
+                modifiedFiles,
+                htmlPath,
+              );
+              _logger.success('📄 Code review HTML report generated: $htmlPath');
+            } catch (e) {
+              _logger.warn('⚠️  Failed to generate code review HTML: $e');
+            }
+          }
+        } catch (e) {
+          reviewProgress.fail('❌ Failed to generate code review');
+          rethrow;
         }
       }
     } catch (error) {
@@ -482,9 +519,15 @@ class AnalyzeCommand extends Command<int> {
     if (aiConfig == null) return null;
 
     try {
+      // Get verbose flag from command line arguments
+      final isVerbose = argResults!['verbose'] as bool;
+      
+      // Create AI config with verbose flag
+      final verboseAiConfig = aiConfig.copyWith(verbose: isVerbose);
+      
       // For now, only support Gemini CLI
       if (aiConfig.provider.toLowerCase() == 'gemini') {
-        return GeminiCliService(aiConfig);
+        return GeminiCliService(verboseAiConfig);
       }
 
       _logger.warn('⚠️  Unsupported AI provider: ${aiConfig.provider}');

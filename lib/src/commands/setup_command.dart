@@ -170,7 +170,7 @@ class SetupCommand extends Command<int> {
     // Output directory
     final outputDir = _logger.prompt(
       '📁 Output directory for reports:',
-      defaultValue: 'coverage_reports',
+      defaultValue: 'coverage/smart_coverage',
     );
 
     // Output formats

@@ -39,7 +39,7 @@ smart_coverage --version
 
 ### `analyze` - Coverage Analysis
 
-Analyze test coverage for your Flutter/Dart project with intelligent file detection and optional AI insights.
+Analyze test coverage for your Flutter/Dart project with intelligent file detection and optional test insights.
 
 ```sh
 smart_coverage analyze [options]
@@ -61,7 +61,7 @@ smart_coverage update
 
 ## 🔍 Analyze Command - Detailed Usage
 
-The `analyze` command is the core functionality of smart_coverage, providing intelligent coverage analysis with git integration and AI insights.
+The `analyze` command is the core functionality of smart_coverage, providing intelligent coverage analysis with git integration and test insights.
 
 ### Basic Usage
 
@@ -90,7 +90,7 @@ smart_coverage analyze --skip-tests --lcov-file coverage/lcov.info
   - Example: `--package-path ./packages/core`
   - **Tip**: Use absolute paths for packages outside current directory
 
-- `--output-dir, -o <directory>`: **Output directory for generated reports** (default: `coverage_reports`)
+- `--output-dir, -o <directory>`: **Output directory for generated reports** (default: `coverage/smart_coverage`)
   - Example: `--output-dir ./build/coverage`
   - **Tip**: Directory will be created automatically if it doesn't exist
 
@@ -160,7 +160,7 @@ smart_coverage analyze \
   --code-review \
   --output-formats console,html,json
 
-# Quick AI insights on existing coverage
+# Quick test insights on existing coverage
 smart_coverage analyze \
   --skip-tests \
   --test-insights \
@@ -223,7 +223,7 @@ Create a `smart_coverage.yaml` file for consistent settings:
 ```yaml
 package_path: "."
 base_branch: "origin/main"
-output_dir: "coverage_reports"
+output_dir: "coverage/smart_coverage"
 skip_tests: false
 test_insights: true
 code_review: true
@@ -346,7 +346,7 @@ smart_coverage analyze --base-branch origin/main
 
 #### AI Features Not Working
 
-**Problem**: AI insights or code review not generating.
+**Problem**: Test insights or code review not generating.
 
 **Solutions**:
 1. Check API key configuration:

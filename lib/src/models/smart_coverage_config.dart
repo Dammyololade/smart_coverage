@@ -85,6 +85,10 @@ class AiConfig {
     this.cliTimeout = 60,
     this.fallbackEnabled = true,
     this.fallbackOrder = const ['local', 'api'],
+    this.cacheEnabled = true,
+    this.cacheDirectory = '.cache',
+    this.cacheExpirationHours,
+    this.verbose = false,
   });
 
   /// AI provider name (e.g., 'gemini', 'openai')
@@ -120,6 +124,18 @@ class AiConfig {
   /// Fallback order preference
   final List<String> fallbackOrder;
 
+  /// Whether caching is enabled for AI responses
+  final bool cacheEnabled;
+
+  /// Directory for storing cached AI responses
+  final String cacheDirectory;
+
+  /// Cache expiration time in hours (null means no expiration)
+  final int? cacheExpirationHours;
+
+  /// Whether to enable verbose output for debugging
+  final bool verbose;
+
   /// Creates a copy of this config with optional modifications
   AiConfig copyWith({
     String? provider,
@@ -133,6 +149,10 @@ class AiConfig {
     int? cliTimeout,
     bool? fallbackEnabled,
     List<String>? fallbackOrder,
+    bool? cacheEnabled,
+    String? cacheDirectory,
+    int? cacheExpirationHours,
+    bool? verbose,
   }) {
     return AiConfig(
       provider: provider ?? this.provider,
@@ -146,6 +166,10 @@ class AiConfig {
       cliTimeout: cliTimeout ?? this.cliTimeout,
       fallbackEnabled: fallbackEnabled ?? this.fallbackEnabled,
       fallbackOrder: fallbackOrder ?? this.fallbackOrder,
+      cacheEnabled: cacheEnabled ?? this.cacheEnabled,
+      cacheDirectory: cacheDirectory ?? this.cacheDirectory,
+      cacheExpirationHours: cacheExpirationHours ?? this.cacheExpirationHours,
+      verbose: verbose ?? this.verbose,
     );
   }
 }

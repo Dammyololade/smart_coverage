@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:mason_logger/mason_logger.dart';
+import 'package:path/path.dart' as path;
 import 'package:smart_coverage/src/models/smart_coverage_config.dart';
 import 'package:smart_coverage/src/services/config_validator.dart';
 import 'package:yaml/yaml.dart';
@@ -164,7 +165,7 @@ class ConfigServiceImpl implements ConfigService {
     return {
       'packagePath': '.',
       'baseBranch': null,
-      'outputDir': 'coverage_reports',
+      'outputDir': 'coverage/smart_coverage',
       'skipTests': false,
       'testInsights': false,
       'codeReview': false,
@@ -182,6 +183,11 @@ class ConfigServiceImpl implements ConfigService {
         'cliTimeout': 60,
         'fallbackEnabled': true,
         'fallbackOrder': ['local', 'api'],
+        'cache': {
+          'enabled': true,
+          'directory': '.smart_coverage_cache',
+          'expirationHours': null,
+        },
       },
     };
   }
@@ -210,11 +216,19 @@ class ConfigServiceImpl implements ConfigService {
   /// Convert configuration map to SmartCoverageConfig object
   SmartCoverageConfig _mapToConfig(Map<String, dynamic> config) {
     final aiConfigMap = config['aiConfig'] as Map<String, dynamic>? ?? {};
+    
+    final packagePath = config['packagePath'] as String? ?? '.';
+    final outputDirRaw = config['outputDir'] as String? ?? 'coverage/smart_coverage';
+    
+    // Resolve output directory relative to package path if it's a relative path
+    final outputDir = path.isAbsolute(outputDirRaw) 
+        ? outputDirRaw 
+        : path.join(packagePath, outputDirRaw);
 
     return SmartCoverageConfig(
-      packagePath: config['packagePath'] as String? ?? '.',
+      packagePath: packagePath,
       baseBranch: config['baseBranch'] as String? ?? 'main',
-      outputDir: config['outputDir'] as String? ?? 'coverage_reports',
+      outputDir: outputDir,
       skipTests: config['skipTests'] as bool? ?? false,
       testInsights: config['testInsights'] as bool? ?? false,
       codeReview: config['codeReview'] as bool? ?? false,
@@ -233,6 +247,9 @@ class ConfigServiceImpl implements ConfigService {
         fallbackEnabled: aiConfigMap['fallbackEnabled'] as bool? ?? true,
         fallbackOrder:
             _parseStringList(aiConfigMap['fallbackOrder']) ?? ['local', 'api'],
+        cacheEnabled: (aiConfigMap['cache'] as Map<String, dynamic>?)?['enabled'] as bool? ?? true,
+        cacheDirectory: (aiConfigMap['cache'] as Map<String, dynamic>?)?['directory'] as String? ?? '.smart_coverage_cache',
+        cacheExpirationHours: (aiConfigMap['cache'] as Map<String, dynamic>?)?['expirationHours'] as int?,
       ),
     );
   }

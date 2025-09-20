@@ -244,7 +244,7 @@ packagePath: .                    # Path to your Dart/Flutter project
 baseBranch: main                  # Git branch to compare against for modified files
 
 # Output settings
-outputDir: coverage_reports       # Directory for generated reports
+outputDir: coverage/smart_coverage # Directory for generated reports
 outputFormats:                    # Report formats to generate
   - console                       # Console output (always recommended)
   - html                          # Interactive HTML report
@@ -255,7 +255,7 @@ outputFormats:                    # Report formats to generate
 skipTests: false                  # Skip running tests (use existing coverage)
 
 # AI-powered features
-testInsights: false               # Generate AI insights for test improvements
+testInsights: false               # Generate test insights for test improvements
 codeReview: false                 # Generate AI code review suggestions
 
 # UI settings
@@ -481,7 +481,7 @@ aiConfig:
           message: 'Output directory cannot be empty',
           severity: ConfigValidationSeverity.error,
           suggestion: 'Set outputDir to a valid directory path',
-          example: 'outputDir: coverage_reports',
+          example: 'outputDir: coverage/smart_coverage',
         ),
       );
       return;
@@ -491,17 +491,31 @@ aiConfig:
     final parentDir = outputDirectory.parent;
 
     if (!await parentDir.exists()) {
-      errors.add(
-        ConfigValidationError(
-          field: 'outputDir',
-          message: 'Output directory parent does not exist: ${parentDir.path}',
-          severity: ConfigValidationSeverity.error,
-          suggestion:
-              'Create the parent directory or choose a different output directory',
-          example: 'mkdir -p ${parentDir.path}',
-        ),
-      );
-      return;
+      try {
+        // Automatically create the parent directory
+        await parentDir.create(recursive: true);
+        suggestions.add(
+          ConfigValidationError(
+            field: 'outputDir',
+            message: 'Created output directory parent: ${parentDir.path}',
+            severity: ConfigValidationSeverity.info,
+            suggestion: 'Directory was automatically created for you',
+            example: 'mkdir -p ${parentDir.path}',
+          ),
+        );
+      } catch (e) {
+        errors.add(
+          ConfigValidationError(
+            field: 'outputDir',
+            message: 'Failed to create output directory parent: ${parentDir.path}. Error: $e',
+            severity: ConfigValidationSeverity.error,
+            suggestion:
+                'Check directory permissions or choose a different output directory',
+            example: 'mkdir -p ${parentDir.path}',
+          ),
+        );
+        return;
+      }
     }
 
     // Check if output directory exists and is writable
@@ -782,7 +796,7 @@ aiConfig:
     // Suggest creating configuration file if using defaults
     if (config.packagePath == '.' &&
         config.baseBranch == 'main' &&
-        config.outputDir == 'coverage_reports' &&
+        config.outputDir == 'coverage/smart_coverage' &&
         !config.testInsights &&
         !config.codeReview) {
       suggestions.add(

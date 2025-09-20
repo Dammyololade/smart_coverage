@@ -6,7 +6,7 @@ packagePath: .                    # Path to your Dart/Flutter project
 baseBranch: main                  # Git branch to compare against for modified files
 
 # Output settings
-outputDir: coverage_reports       # Directory for generated reports
+outputDir: coverage/smart_coverage # Directory for generated reports
 outputFormats:                    # Report formats to generate
   - console                       # Console output (always recommended)
   - html                          # Interactive HTML report
@@ -17,7 +17,7 @@ outputFormats:                    # Report formats to generate
 skipTests: false                  # Skip running tests (use existing coverage)
 
 # AI-powered features
-testInsights: false               # Generate AI insights for test improvements
+testInsights: false               # Generate test insights for test improvements
 codeReview: false                 # Generate AI code review suggestions
 
 # UI settings
@@ -31,8 +31,15 @@ aiConfig:
   # model: gemini-pro             # Specific model to use
   timeout: 30                     # API timeout in seconds
   cliCommand: gemini              # CLI command for local providers
+  cliArgs: []                     # Additional CLI arguments
   cliTimeout: 60                  # CLI timeout in seconds
   fallbackEnabled: true           # Enable fallback to other providers
   fallbackOrder:                  # Fallback order
     - local
     - api
+  
+  # Response caching settings
+  cache:
+    enabled: true                 # Enable response caching to avoid repeated API calls
+    directory: .cache             # Cache directory (relative to project root)
+    # expiration: 24h             # Cache expiration time (optional)

@@ -14,7 +14,10 @@ coverage/
 # Android studio and IntelliJ
 .idea
 
-coverage_reports/
 smart_coverage_*.*
+
+# Cache directory for AI responses (keep structure, ignore content)
+.cache/*
+!.cache/.gitkeep
 
 .trae/*
