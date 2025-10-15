@@ -1,0 +1,16 @@
+#!/bin/bash
+# Pre-commit hook to update coverage badge automatically
+
+# Only run if test files were modified
+if git diff --cached --name-only | grep -qE '^test/.*\.dart$|^lib/.*\.dart$'; then
+    echo "📊 Test or source files changed, updating coverage badge..."
+
+    # Run the coverage update script
+    ./tool/update_coverage_badge.sh
+
+    # Add the updated badge to the commit
+    git add coverage_badge.svg
+
+    echo "✅ Coverage badge updated and staged"
+fi
+

@@ -231,5 +231,180 @@ environment:
         expect(isValid, isFalse);
       });
     });
+
+    group('loadConfig', () {
+      test('merges CLI args with YAML config', () async {
+        final configFile = File('${tempDir.path}/smart_coverage.yaml');
+        await configFile.writeAsString('''
+packagePath: /yaml/path
+baseBranch: develop
+outputFormats:
+  - console
+''');
+
+        final config = await configService.loadConfig(
+          configFilePath: configFile.path,
+          cliArgs: {
+            'packagePath': '/cli/path',
+            'outputFormats': ['html', 'json'],
+          },
+        );
+
+        // CLI args should override YAML
+        expect(config.packagePath, equals('/cli/path'));
+        expect(config.outputFormats, containsAll(['html', 'json']));
+        // YAML values not overridden should remain
+        expect(config.baseBranch, equals('develop'));
+      });
+
+      test('loads config from CLI args only', () async {
+        final config = await configService.loadConfig(
+          cliArgs: {
+            'packagePath': '/test/path',
+            'baseBranch': 'main',
+            'outputDir': '/test/output',
+            'skipTests': true,
+            'outputFormats': ['console'],
+          },
+        );
+
+        expect(config.packagePath, equals('/test/path'));
+        expect(config.baseBranch, equals('main'));
+        expect(config.skipTests, isTrue);
+      });
+
+      test('uses defaults when no config provided', () async {
+        final config = await configService.loadConfig(cliArgs: {});
+
+        expect(config.packagePath, equals('.'));
+        expect(config.baseBranch, isNotEmpty);
+        expect(config.outputFormats, isNotEmpty);
+      });
+
+      test('handles boolean flags correctly', () async {
+        final config = await configService.loadConfig(
+          cliArgs: {
+            'skipTests': true,
+            'testInsights': true,
+            'codeReview': false,
+            'darkMode': true,
+          },
+        );
+
+        expect(config.skipTests, isTrue);
+        expect(config.testInsights, isTrue);
+        expect(config.codeReview, isFalse);
+        expect(config.darkMode, isTrue);
+      });
+
+      test('handles empty config file path', () async {
+        final config = await configService.loadConfig(
+          configFilePath: null,
+          cliArgs: {'packagePath': '.'},
+        );
+
+        expect(config.packagePath, equals('.'));
+      });
+
+      test('handles nonexistent config file gracefully', () async {
+        final config = await configService.loadConfig(
+          configFilePath: '/nonexistent/config.yaml',
+          cliArgs: {'packagePath': '.'},
+        );
+
+        expect(config.packagePath, equals('.'));
+      });
+    });
+
+    group('mergeConfigs', () {
+      test('CLI args take precedence over YAML', () async {
+        final configFile = File('${tempDir.path}/yaml.yaml');
+        await configFile.writeAsString('''
+packagePath: /yaml/path
+baseBranch: develop
+''');
+
+        final config = await configService.loadConfig(
+          configFilePath: configFile.path,
+          cliArgs: {
+            'packagePath': '/cli/path',
+          },
+        );
+
+        expect(config.packagePath, equals('/cli/path'));
+        expect(config.baseBranch, equals('develop'));
+      });
+
+      test('handles nested AI config merging', () async {
+        final configFile = File('${tempDir.path}/ai.yaml');
+        await configFile.writeAsString('''
+aiConfig:
+  provider: gemini
+  timeout: 30
+''');
+
+        final config = await configService.loadConfig(
+          configFilePath: configFile.path,
+          cliArgs: {
+            'aiConfig': {
+              'timeout': 60,
+            },
+          },
+        );
+
+        expect(config.aiConfig.provider, equals('gemini'));
+        expect(config.aiConfig.timeout, equals(60));
+      });
+
+      test('uses environment variables as fallback', () async {
+        final config = await configService.loadConfig(
+          cliArgs: {
+            'packagePath': '/cli/path',
+          },
+        );
+
+        expect(config.packagePath, equals('/cli/path'));
+      });
+    });
+
+    group('edge cases', () {
+      test('handles very large config files', () async {
+        final configFile = File('${tempDir.path}/large.yaml');
+        final buffer = StringBuffer();
+        buffer.writeln('packagePath: /test');
+        for (var i = 0; i < 1000; i++) {
+          buffer.writeln('# Comment line $i');
+        }
+
+        await configFile.writeAsString(buffer.toString());
+
+        final configMap = await configService.loadYamlConfig(configFile.path);
+        expect(configMap, isNotNull);
+      });
+
+      test('handles special characters in paths', () async {
+        final config = await configService.loadConfig(
+          cliArgs: {
+            'packagePath': '/path with spaces/test',
+            'outputDir': '/output-dir_2024',
+          },
+        );
+
+        expect(config.packagePath, equals('/path with spaces/test'));
+        expect(config.outputDir, equals('/output-dir_2024'));
+      });
+
+      test('handles empty strings in config', () async {
+        final configFile = File('${tempDir.path}/empty.yaml');
+        await configFile.writeAsString('''
+packagePath: ""
+baseBranch: ""
+''');
+
+        final configMap = await configService.loadYamlConfig(configFile.path);
+        expect(configMap, isNotNull);
+        expect(configMap!['packagePath'], equals(''));
+      });
+    });
   });
 }

@@ -1,0 +1,123 @@
+name: Coverage
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📚 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🎯 Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: 📦 Install dependencies
+        run: dart pub get
+
+      - name: 🧪 Run tests with coverage
+        run: |
+          dart test --coverage=coverage
+          dart pub global activate coverage
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib
+
+      - name: 📊 Generate coverage report
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y lcov
+          genhtml coverage/lcov.info -o coverage/html
+
+      - name: 📈 Calculate coverage percentage
+        id: coverage
+        run: |
+          COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep "lines" | awk '{print $2}' | sed 's/%//')
+          echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+          echo "Coverage: $COVERAGE%"
+
+      - name: 🎨 Generate coverage badge
+        run: |
+          COVERAGE=${{ steps.coverage.outputs.percentage }}
+          COLOR="#e05d44"  # red
+          
+          if (( $(echo "$COVERAGE >= 90" | bc -l) )); then
+            COLOR="#44cc11"  # bright green
+          elif (( $(echo "$COVERAGE >= 80" | bc -l) )); then
+            COLOR="#97ca00"  # green
+          elif (( $(echo "$COVERAGE >= 70" | bc -l) )); then
+            COLOR="#dfb317"  # yellow
+          elif (( $(echo "$COVERAGE >= 60" | bc -l) )); then
+            COLOR="#fe7d37"  # orange
+          fi
+          
+          cat > coverage_badge.svg << EOF
+          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="102" height="20">
+              <linearGradient id="b" x2="0" y2="100%">
+                  <stop offset="0" stop-color="#bbb" stop-opacity=".1" />
+                  <stop offset="1" stop-opacity=".1" />
+              </linearGradient>
+              <clipPath id="a">
+                  <rect width="102" height="20" rx="3" fill="#fff" />
+              </clipPath>
+              <g clip-path="url(#a)">
+                  <path fill="#555" d="M0 0h59v20H0z" />
+                  <path fill="$COLOR" d="M59 0h43v20H59z" />
+                  <path fill="url(#b)" d="M0 0h102v20H0z" />
+              </g>
+              <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="110">
+                  <text x="305" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="490">coverage</text>
+                  <text x="305" y="140" transform="scale(.1)" textLength="490">coverage</text>
+                  <text x="795" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="290">${COVERAGE}%</text>
+                  <text x="795" y="140" transform="scale(.1)" textLength="290">${COVERAGE}%</text>
+              </g>
+          </svg>
+          EOF
+
+      - name: 💾 Commit coverage badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add coverage_badge.svg
+          git diff --staged --quiet || git commit -m "chore: update coverage badge to ${{ steps.coverage.outputs.percentage }}%"
+          git push
+
+      - name: 📝 Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const coverage = '${{ steps.coverage.outputs.percentage }}';
+            const comment = `## 📊 Coverage Report
+            
+            Current coverage: **${coverage}%**
+            
+            Coverage details will be available in the workflow artifacts.`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: 📤 Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/html
+          retention-days: 30
+
+      - name: ✅ Coverage check
+        run: |
+          COVERAGE=${{ steps.coverage.outputs.percentage }}
+          if (( $(echo "$COVERAGE < 70" | bc -l) )); then
+            echo "::warning::Coverage is below 70% ($COVERAGE%)"
+          fi
+
