@@ -513,7 +513,8 @@ aiConfig:
         errors.add(
           ConfigValidationError(
             field: 'outputDir',
-            message: 'Failed to create output directory parent: ${parentDir.path}. Error: $e',
+            message:
+                'Failed to create output directory parent: ${parentDir.path}. Error: $e',
             severity: ConfigValidationSeverity.error,
             suggestion:
                 'Check directory permissions or choose a different output directory',

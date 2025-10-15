@@ -45,7 +45,7 @@ class GitServiceImpl implements GitService {
       if (await gitDir.exists()) {
         return currentDir;
       }
-      
+
       // Get parent directory
       final parent = currentDir.parent;
 
@@ -54,15 +54,17 @@ class GitServiceImpl implements GitService {
       final currentPath = currentDir.path.replaceAll(r'\', '/');
       final parentPath = parent.path.replaceAll(r'\', '/');
 
-      if (currentPath == parentPath || parentPath == '/' || parentPath.endsWith(':/')) {
+      if (currentPath == parentPath ||
+          parentPath == '/' ||
+          parentPath.endsWith(':/')) {
         // We've reached the root directory without finding .git
         break;
       }
-      
+
       currentDir = parent;
       attempts++;
     }
-    
+
     return null;
   }
 

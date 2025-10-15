@@ -253,7 +253,9 @@ void main() {
       });
 
       test('scans directory for Dart files', () async {
-        await File('${tempDir.path}/file1.dart').writeAsString('void main() {}');
+        await File(
+          '${tempDir.path}/file1.dart',
+        ).writeAsString('void main() {}');
         await File('${tempDir.path}/file2.dart').writeAsString('class Test {}');
         await File('${tempDir.path}/file3.txt').writeAsString('not dart');
 
@@ -402,4 +404,3 @@ void main() {
     });
   });
 }
-

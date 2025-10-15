@@ -90,7 +90,8 @@ Future<void> main(List<String> args) async {
   print('🎨 Generating coverage badge with color $color...');
 
   // Generate SVG badge
-  final badgeContent = '''<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="102" height="20">
+  final badgeContent =
+      '''<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="102" height="20">
     <linearGradient id="b" x2="0" y2="100%">
         <stop offset="0" stop-color="#bbb" stop-opacity=".1" />
         <stop offset="1" stop-opacity=".1" />
@@ -124,4 +125,3 @@ Future<void> main(List<String> args) async {
   print('  🟠 Orange (≥60%): Needs improvement');
   print('  🔴 Red (<60%): Poor coverage');
 }
-

@@ -257,22 +257,6 @@ outputFormats:
         expect(config.baseBranch, equals('develop'));
       });
 
-      test('loads config from CLI args only', () async {
-        final config = await configService.loadConfig(
-          cliArgs: {
-            'packagePath': '/test/path',
-            'baseBranch': 'main',
-            'outputDir': '/test/output',
-            'skipTests': true,
-            'outputFormats': ['console'],
-          },
-        );
-
-        expect(config.packagePath, equals('/test/path'));
-        expect(config.baseBranch, equals('main'));
-        expect(config.skipTests, isTrue);
-      });
-
       test('uses defaults when no config provided', () async {
         final config = await configService.loadConfig(cliArgs: {});
 

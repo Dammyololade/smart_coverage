@@ -301,7 +301,9 @@ class ReportGeneratorImpl implements ReportGenerator {
     final content = await indexFile.readAsString();
 
     // Check if AI-generated files exist
-    final testInsightsExists = await File('$outputDir/test_insights.html').exists();
+    final testInsightsExists = await File(
+      '$outputDir/test_insights.html',
+    ).exists();
     final codeReviewExists = await File('$outputDir/code_review.html').exists();
 
     // Only proceed if at least one insights file exists

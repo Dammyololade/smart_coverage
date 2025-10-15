@@ -18,8 +18,7 @@ class _MockConfigValidator extends Mock implements ConfigValidator {}
 class _FakeLogger extends Fake implements Logger {}
 
 class _TestCommandRunner extends CommandRunner<int> {
-  _TestCommandRunner(SetupCommand command)
-      : super('test', 'Test runner') {
+  _TestCommandRunner(SetupCommand command) : super('test', 'Test runner') {
     addCommand(command);
   }
 }
@@ -61,31 +60,36 @@ void main() {
       when(() => logger.warn(any())).thenReturn(null);
       when(() => logger.success(any())).thenReturn(null);
       when(() => logger.confirm(any())).thenReturn(true);
-      when(() => logger.confirm(any(), defaultValue: any(named: 'defaultValue')))
-          .thenReturn(false);
-      when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-          .thenAnswer((invocation) {
+      when(
+        () => logger.confirm(any(), defaultValue: any(named: 'defaultValue')),
+      ).thenReturn(false);
+      when(
+        () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+      ).thenAnswer((invocation) {
         final defaultValue = invocation.namedArguments[#defaultValue];
         return defaultValue?.toString() ?? '';
       });
-      when(() => logger.chooseOne<String>(
-            any(),
-            choices: any(named: 'choices'),
-            defaultValue: any(named: 'defaultValue'),
-          )).thenAnswer((invocation) {
+      when(
+        () => logger.chooseOne<String>(
+          any(),
+          choices: any(named: 'choices'),
+          defaultValue: any(named: 'defaultValue'),
+        ),
+      ).thenAnswer((invocation) {
         final defaultValue = invocation.namedArguments[#defaultValue];
         return defaultValue?.toString() ?? 'gemini';
       });
 
       // Mock to prevent actual file writes
-      when(() => configService.saveConfig(any(), any()))
-          .thenAnswer((_) async {
-            // Do nothing - prevent actual file writes
-          });
-      when(() => validator.validateAndDisplay(any(), any()))
-          .thenAnswer((_) async => true);
-      when(() => validator.generateConfigTemplate())
-          .thenReturn('# Generated template\noutputFormats: [console]\n');
+      when(() => configService.saveConfig(any(), any())).thenAnswer((_) async {
+        // Do nothing - prevent actual file writes
+      });
+      when(
+        () => validator.validateAndDisplay(any(), any()),
+      ).thenAnswer((_) async => true);
+      when(
+        () => validator.generateConfigTemplate(),
+      ).thenReturn('# Generated template\noutputFormats: [console]\n');
     });
 
     tearDown(() {
@@ -111,8 +115,9 @@ void main() {
     test('generates template when --template-only flag is used', () async {
       final configPath = '${tempDir.path}/smart_coverage.yaml';
 
-      when(() => validator.generateConfigTemplate())
-          .thenReturn('# Template content\noutputFormats: [console]\n');
+      when(
+        () => validator.generateConfigTemplate(),
+      ).thenReturn('# Template content\noutputFormats: [console]\n');
 
       final command = SetupCommand(
         logger: logger,
@@ -165,8 +170,9 @@ void main() {
       final configPath = '${tempDir.path}/smart_coverage.yaml';
       await File(configPath).writeAsString('existing config');
 
-      when(() => validator.generateConfigTemplate())
-          .thenReturn('# New template\noutputFormats: [console]\n');
+      when(
+        () => validator.generateConfigTemplate(),
+      ).thenReturn('# New template\noutputFormats: [console]\n');
 
       final command = SetupCommand(
         logger: logger,
@@ -194,8 +200,9 @@ void main() {
     test('validates configuration is saved with console output only', () async {
       final configPath = '${tempDir.path}/smart_coverage.yaml';
 
-      when(() => validator.generateConfigTemplate())
-          .thenReturn('# Config\noutputFormats: [console]\n');
+      when(
+        () => validator.generateConfigTemplate(),
+      ).thenReturn('# Config\noutputFormats: [console]\n');
 
       final command = SetupCommand(
         logger: logger,
@@ -220,8 +227,9 @@ void main() {
     test('handles errors during setup gracefully', () async {
       final configPath = '${tempDir.path}/smart_coverage.yaml';
 
-      when(() => validator.generateConfigTemplate())
-          .thenThrow(Exception('Template generation failed'));
+      when(
+        () => validator.generateConfigTemplate(),
+      ).thenThrow(Exception('Template generation failed'));
 
       final command = SetupCommand(
         logger: logger,
@@ -246,8 +254,9 @@ void main() {
       final customDir = Directory('${tempDir.path}/custom');
       await customDir.create();
 
-      when(() => validator.generateConfigTemplate())
-          .thenReturn('# Custom template\noutputFormats: [console]\n');
+      when(
+        () => validator.generateConfigTemplate(),
+      ).thenReturn('# Custom template\noutputFormats: [console]\n');
 
       final command = SetupCommand(
         logger: logger,
@@ -275,31 +284,60 @@ void main() {
         final configPath = '${tempDir.path}/smart_coverage.yaml';
 
         // Mock user inputs
-        when(() => logger.confirm(any())).thenReturn(false); // Don't overwrite initially
-        when(() => logger.confirm('🤖 Enable AI-powered insights and code review?'))
-            .thenReturn(true);
-        when(() => logger.confirm('⚙️  Configure advanced options?', defaultValue: false))
-            .thenReturn(false);
-        when(() => logger.prompt('📦 Package path (current directory):', defaultValue: '.'))
-            .thenReturn('.');
-        when(() => logger.prompt('🌿 Base branch for comparison:', defaultValue: any(named: 'defaultValue')))
-            .thenReturn('main');
-        when(() => logger.prompt('📁 Output directory for reports:', defaultValue: 'coverage/smart_coverage'))
-            .thenReturn('coverage/smart_coverage');
-        when(() => logger.prompt('Output formats:', defaultValue: 'console html'))
-            .thenReturn('console html');
-        when(() => logger.chooseOne<String>(
-              'Select AI provider:',
-              choices: any(named: 'choices'),
-              defaultValue: 'gemini',
-            )).thenReturn('gemini');
-        when(() => logger.chooseOne<String>(
-              'Provider type:',
-              choices: any(named: 'choices'),
-              defaultValue: 'auto',
-            )).thenReturn('api');
-        when(() => logger.prompt('Environment variable for API key:', defaultValue: 'GEMINI_API_KEY'))
-            .thenReturn('GEMINI_API_KEY');
+        when(
+          () => logger.confirm(any()),
+        ).thenReturn(false); // Don't overwrite initially
+        when(
+          () =>
+              logger.confirm('🤖 Enable AI-powered insights and code review?'),
+        ).thenReturn(true);
+        when(
+          () => logger.confirm(
+            '⚙️  Configure advanced options?',
+            defaultValue: false,
+          ),
+        ).thenReturn(false);
+        when(
+          () => logger.prompt(
+            '📦 Package path (current directory):',
+            defaultValue: '.',
+          ),
+        ).thenReturn('.');
+        when(
+          () => logger.prompt(
+            '🌿 Base branch for comparison:',
+            defaultValue: any(named: 'defaultValue'),
+          ),
+        ).thenReturn('main');
+        when(
+          () => logger.prompt(
+            '📁 Output directory for reports:',
+            defaultValue: 'coverage/smart_coverage',
+          ),
+        ).thenReturn('coverage/smart_coverage');
+        when(
+          () => logger.prompt('Output formats:', defaultValue: 'console html'),
+        ).thenReturn('console html');
+        when(
+          () => logger.chooseOne<String>(
+            'Select AI provider:',
+            choices: any(named: 'choices'),
+            defaultValue: 'gemini',
+          ),
+        ).thenReturn('gemini');
+        when(
+          () => logger.chooseOne<String>(
+            'Provider type:',
+            choices: any(named: 'choices'),
+            defaultValue: 'auto',
+          ),
+        ).thenReturn('api');
+        when(
+          () => logger.prompt(
+            'Environment variable for API key:',
+            defaultValue: 'GEMINI_API_KEY',
+          ),
+        ).thenReturn('GEMINI_API_KEY');
 
         final command = SetupCommand(
           logger: logger,
@@ -323,10 +361,15 @@ void main() {
         final configPath = '${tempDir.path}/smart_coverage.yaml';
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.confirm('🤖 Enable AI-powered insights and code review?'))
-            .thenReturn(false);
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () =>
+              logger.confirm('🤖 Enable AI-powered insights and code review?'),
+        ).thenReturn(false);
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -349,8 +392,11 @@ void main() {
         final configPath = '${tempDir.path}/smart_coverage.yaml';
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -368,23 +414,43 @@ void main() {
 
         expect(result, equals(ExitCode.success.code));
         // Should not prompt for AI configuration
-        verifyNever(() => logger.confirm('🤖 Enable AI-powered insights and code review?'));
+        verifyNever(
+          () =>
+              logger.confirm('🤖 Enable AI-powered insights and code review?'),
+        );
       });
 
       test('configures advanced options when requested', () async {
         final configPath = '${tempDir.path}/smart_coverage.yaml';
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.confirm('⚙️  Configure advanced options?', defaultValue: false))
-            .thenReturn(true);
-        when(() => logger.confirm('Skip running tests (use existing coverage)?', defaultValue: false))
-            .thenReturn(true);
-        when(() => logger.confirm('Use dark mode for HTML reports?', defaultValue: true))
-            .thenReturn(false);
-        when(() => logger.confirm('🤖 Enable AI-powered insights and code review?'))
-            .thenReturn(false);
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () => logger.confirm(
+            '⚙️  Configure advanced options?',
+            defaultValue: false,
+          ),
+        ).thenReturn(true);
+        when(
+          () => logger.confirm(
+            'Skip running tests (use existing coverage)?',
+            defaultValue: false,
+          ),
+        ).thenReturn(true);
+        when(
+          () => logger.confirm(
+            'Use dark mode for HTML reports?',
+            defaultValue: true,
+          ),
+        ).thenReturn(false);
+        when(
+          () =>
+              logger.confirm('🤖 Enable AI-powered insights and code review?'),
+        ).thenReturn(false);
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -400,19 +466,35 @@ void main() {
         ]);
 
         expect(result, equals(ExitCode.success.code));
-        verify(() => logger.confirm('Skip running tests (use existing coverage)?', defaultValue: false)).called(1);
-        verify(() => logger.confirm('Use dark mode for HTML reports?', defaultValue: true)).called(1);
+        verify(
+          () => logger.confirm(
+            'Skip running tests (use existing coverage)?',
+            defaultValue: false,
+          ),
+        ).called(1);
+        verify(
+          () => logger.confirm(
+            'Use dark mode for HTML reports?',
+            defaultValue: true,
+          ),
+        ).called(1);
       });
 
       test('handles validation failure with retry option', () async {
         final configPath = '${tempDir.path}/smart_coverage.yaml';
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.confirm('Would you like to retry setup?')).thenReturn(false);
-        when(() => validator.validateAndDisplay(any(), any()))
-            .thenAnswer((_) async => false);
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () => logger.confirm('Would you like to retry setup?'),
+        ).thenReturn(false);
+        when(
+          () => validator.validateAndDisplay(any(), any()),
+        ).thenAnswer((_) async => false);
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -428,20 +510,30 @@ void main() {
         ]);
 
         expect(result, equals(ExitCode.config.code));
-        verify(() => logger.err('❌ Configuration validation failed.')).called(1);
-        verify(() => logger.confirm('Would you like to retry setup?')).called(1);
+        verify(
+          () => logger.err('❌ Configuration validation failed.'),
+        ).called(1);
+        verify(
+          () => logger.confirm('Would you like to retry setup?'),
+        ).called(1);
       });
 
       test('selects multiple output formats correctly', () async {
         final configPath = '${tempDir.path}/smart_coverage.yaml';
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.confirm('🤖 Enable AI-powered insights and code review?'))
-            .thenReturn(false);
-        when(() => logger.prompt('Output formats:', defaultValue: 'console html'))
-            .thenReturn('console html json lcov');
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () =>
+              logger.confirm('🤖 Enable AI-powered insights and code review?'),
+        ).thenReturn(false);
+        when(
+          () => logger.prompt('Output formats:', defaultValue: 'console html'),
+        ).thenReturn('console html json lcov');
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -463,22 +555,35 @@ void main() {
         final configPath = '${tempDir.path}/smart_coverage.yaml';
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.confirm('🤖 Enable AI-powered insights and code review?'))
-            .thenReturn(true);
-        when(() => logger.chooseOne<String>(
-              'Select AI provider:',
-              choices: any(named: 'choices'),
-              defaultValue: 'gemini',
-            )).thenReturn('openai');
-        when(() => logger.chooseOne<String>(
-              'Provider type:',
-              choices: any(named: 'choices'),
-              defaultValue: 'auto',
-            )).thenReturn('api');
-        when(() => logger.prompt('Environment variable for API key:', defaultValue: 'OPENAI_API_KEY'))
-            .thenReturn('OPENAI_API_KEY');
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () =>
+              logger.confirm('🤖 Enable AI-powered insights and code review?'),
+        ).thenReturn(true);
+        when(
+          () => logger.chooseOne<String>(
+            'Select AI provider:',
+            choices: any(named: 'choices'),
+            defaultValue: 'gemini',
+          ),
+        ).thenReturn('openai');
+        when(
+          () => logger.chooseOne<String>(
+            'Provider type:',
+            choices: any(named: 'choices'),
+            defaultValue: 'auto',
+          ),
+        ).thenReturn('api');
+        when(
+          () => logger.prompt(
+            'Environment variable for API key:',
+            defaultValue: 'OPENAI_API_KEY',
+          ),
+        ).thenReturn('OPENAI_API_KEY');
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -494,8 +599,12 @@ void main() {
         ]);
 
         expect(result, equals(ExitCode.success.code));
-        verify(() => logger.warn(any(that: contains('OPENAI_API_KEY is not set')))).called(1);
-        verify(() => logger.info(any(that: contains('export OPENAI_API_KEY')))).called(1);
+        verify(
+          () => logger.warn(any(that: contains('OPENAI_API_KEY is not set'))),
+        ).called(1);
+        verify(
+          () => logger.info(any(that: contains('export OPENAI_API_KEY'))),
+        ).called(1);
       });
 
       test('detects Flutter project correctly', () async {
@@ -513,8 +622,11 @@ flutter:
         Directory.current = tempDir;
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -530,7 +642,9 @@ flutter:
         ]);
 
         expect(result, equals(ExitCode.success.code));
-        verify(() => logger.info(any(that: contains('Flutter')))).called(greaterThan(0));
+        verify(
+          () => logger.info(any(that: contains('Flutter'))),
+        ).called(greaterThan(0));
 
         // Restore original directory
         Directory.current = originalDir;
@@ -550,8 +664,11 @@ environment:
         Directory.current = tempDir;
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -567,7 +684,9 @@ environment:
         ]);
 
         expect(result, equals(ExitCode.success.code));
-        verify(() => logger.info(any(that: contains('Dart')))).called(greaterThan(0));
+        verify(
+          () => logger.info(any(that: contains('Dart'))),
+        ).called(greaterThan(0));
 
         Directory.current = originalDir;
       });
@@ -576,8 +695,9 @@ environment:
         final configPath = '${tempDir.path}/smart_coverage.yaml';
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenThrow(Exception('User input error'));
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenThrow(Exception('User input error'));
 
         final command = SetupCommand(
           logger: logger,
@@ -600,20 +720,29 @@ environment:
         final configPath = '${tempDir.path}/smart_coverage.yaml';
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.confirm('🤖 Enable AI-powered insights and code review?'))
-            .thenReturn(true);
-        when(() => logger.chooseOne<String>(
-              'Select AI provider:',
-              choices: any(named: 'choices'),
-              defaultValue: 'gemini',
-            )).thenReturn('claude');
-        when(() => logger.chooseOne<String>(
-              'Provider type:',
-              choices: any(named: 'choices'),
-              defaultValue: 'auto',
-            )).thenReturn('local');
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () =>
+              logger.confirm('🤖 Enable AI-powered insights and code review?'),
+        ).thenReturn(true);
+        when(
+          () => logger.chooseOne<String>(
+            'Select AI provider:',
+            choices: any(named: 'choices'),
+            defaultValue: 'gemini',
+          ),
+        ).thenReturn('claude');
+        when(
+          () => logger.chooseOne<String>(
+            'Provider type:',
+            choices: any(named: 'choices'),
+            defaultValue: 'auto',
+          ),
+        ).thenReturn('local');
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -630,15 +759,23 @@ environment:
 
         expect(result, equals(ExitCode.success.code));
         // Should not prompt for API key when using local provider
-        verifyNever(() => logger.prompt('Environment variable for API key:', defaultValue: any(named: 'defaultValue')));
+        verifyNever(
+          () => logger.prompt(
+            'Environment variable for API key:',
+            defaultValue: any(named: 'defaultValue'),
+          ),
+        );
       });
 
       test('displays next steps after successful setup', () async {
         final configPath = '${tempDir.path}/smart_coverage.yaml';
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -655,7 +792,9 @@ environment:
 
         expect(result, equals(ExitCode.success.code));
         verify(() => logger.info(any(that: contains('Next steps')))).called(1);
-        verify(() => logger.info(any(that: contains('smart_coverage analyze')))).called(greaterThan(0));
+        verify(
+          () => logger.info(any(that: contains('smart_coverage analyze'))),
+        ).called(greaterThan(0));
       });
     });
 
@@ -672,8 +811,11 @@ environment:
         Directory.current = tempDir;
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -701,8 +843,11 @@ environment:
         Directory.current = tempDir;
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -723,8 +868,11 @@ environment:
         Directory.current = tempDir;
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -736,7 +884,9 @@ environment:
         final result = await runner.run(['setup', '--output', configPath]);
 
         expect(result, equals(ExitCode.success.code));
-        verify(() => logger.info(any(that: contains('Unknown')))).called(greaterThan(0));
+        verify(
+          () => logger.info(any(that: contains('Unknown'))),
+        ).called(greaterThan(0));
 
         Directory.current = originalDir;
       });
@@ -747,10 +897,14 @@ environment:
         final configPath = '${tempDir.path}/smart_coverage.yaml';
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.prompt('Output formats:', defaultValue: 'console html'))
-            .thenReturn('   '); // Empty with spaces
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () => logger.prompt('Output formats:', defaultValue: 'console html'),
+        ).thenReturn('   '); // Empty with spaces
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -769,10 +923,17 @@ environment:
         final longPath = '/very/long/path/${'directory/' * 20}package';
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.prompt('📦 Package path (current directory):', defaultValue: '.'))
-            .thenReturn(longPath);
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
+        when(
+          () => logger.prompt(
+            '📦 Package path (current directory):',
+            defaultValue: '.',
+          ),
+        ).thenReturn(longPath);
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
 
         final command = SetupCommand(
           logger: logger,
@@ -790,10 +951,14 @@ environment:
         final configPath = '${tempDir.path}/smart_coverage.yaml';
 
         when(() => logger.confirm(any())).thenReturn(false);
-        when(() => logger.prompt(any(), defaultValue: any(named: 'defaultValue')))
-            .thenAnswer((inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.');
-        when(() => configService.saveConfig(any(), any()))
-            .thenThrow(Exception('Failed to write file'));
+        when(
+          () => logger.prompt(any(), defaultValue: any(named: 'defaultValue')),
+        ).thenAnswer(
+          (inv) => inv.namedArguments[#defaultValue]?.toString() ?? '.',
+        );
+        when(
+          () => configService.saveConfig(any(), any()),
+        ).thenThrow(Exception('Failed to write file'));
 
         final command = SetupCommand(
           logger: logger,

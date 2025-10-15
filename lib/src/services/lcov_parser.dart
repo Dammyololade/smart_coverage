@@ -97,7 +97,9 @@ class LcovParserImpl implements LcovParser {
         final lcovFilename = normalizedLcovPath.split('/').last;
         final modifiedFilename = normalizedModified.split('/').last;
         if (lcovFilename == modifiedFilename &&
-            normalizedLcovPath.contains(normalizedModified.replaceFirst('lib/', ''))) {
+            normalizedLcovPath.contains(
+              normalizedModified.replaceFirst('lib/', ''),
+            )) {
           return true;
         }
 
@@ -111,7 +113,9 @@ class LcovParserImpl implements LcovParser {
     if (filteredFiles.isEmpty && filePaths.isNotEmpty) {
       print('⚠️  No matches found! Sample paths:');
       print('   Modified file example: ${filePaths.first}');
-      print('   LCOV file example: ${data.files.isNotEmpty ? data.files.first.path : "none"}');
+      print(
+        '   LCOV file example: ${data.files.isNotEmpty ? data.files.first.path : "none"}',
+      );
     }
 
     return CoverageData(

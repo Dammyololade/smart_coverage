@@ -48,7 +48,9 @@ class FileDetectorImpl implements FileDetector {
     }
 
     print('📂 Git repository found at: $gitRoot');
-    print('📍 Current package: ${_getRelativePackagePath(workingDir, gitRoot)}');
+    print(
+      '📍 Current package: ${_getRelativePackagePath(workingDir, gitRoot)}',
+    );
 
     try {
       // Get modified files using git diff from the repository root
@@ -71,7 +73,9 @@ class FileDetectorImpl implements FileDetector {
         );
 
         if (fallbackResult.exitCode != 0) {
-          print('ℹ️  No uncommitted changes found. Analyzing all Dart files in the package.');
+          print(
+            'ℹ️  No uncommitted changes found. Analyzing all Dart files in the package.',
+          );
           // Final fallback: return all Dart files
           return await getAllDartFiles(workingDir);
         }
@@ -83,16 +87,26 @@ class FileDetectorImpl implements FileDetector {
             .where((file) => file.isNotEmpty)
             .toList();
 
-        print('🔍 Found ${uncommittedFiles.length} uncommitted file(s) in repository');
+        print(
+          '🔍 Found ${uncommittedFiles.length} uncommitted file(s) in repository',
+        );
 
-        final filteredFiles = _filterAndAdjustPaths(uncommittedFiles, workingDir, gitRoot);
+        final filteredFiles = _filterAndAdjustPaths(
+          uncommittedFiles,
+          workingDir,
+          gitRoot,
+        );
 
         if (filteredFiles.isEmpty) {
-          print('ℹ️  No modified Dart files found in this package. Analyzing all Dart files.');
+          print(
+            'ℹ️  No modified Dart files found in this package. Analyzing all Dart files.',
+          );
           return await getAllDartFiles(workingDir);
         }
 
-        print('📝 Analyzing ${filteredFiles.length} modified file(s) from uncommitted changes');
+        print(
+          '📝 Analyzing ${filteredFiles.length} modified file(s) from uncommitted changes',
+        );
         return filteredFiles;
       }
 
@@ -103,11 +117,15 @@ class FileDetectorImpl implements FileDetector {
           .where((file) => file.isNotEmpty)
           .toList();
 
-      print('🔍 Found ${modifiedFiles.length} modified file(s) compared to $baseBranch');
+      print(
+        '🔍 Found ${modifiedFiles.length} modified file(s) compared to $baseBranch',
+      );
 
       // If no committed changes found, check for uncommitted changes
       if (modifiedFiles.isEmpty) {
-        print('ℹ️  No committed changes found. Checking uncommitted changes...');
+        print(
+          'ℹ️  No committed changes found. Checking uncommitted changes...',
+        );
 
         final fallbackResult = await Process.run(
           'git',
@@ -123,32 +141,50 @@ class FileDetectorImpl implements FileDetector {
               .where((file) => file.isNotEmpty)
               .toList();
 
-          final filteredFiles = _filterAndAdjustPaths(uncommittedFiles, workingDir, gitRoot);
+          final filteredFiles = _filterAndAdjustPaths(
+            uncommittedFiles,
+            workingDir,
+            gitRoot,
+          );
 
           if (filteredFiles.isEmpty) {
-            print('ℹ️  No modified Dart files found in this package. Analyzing all Dart files.');
+            print(
+              'ℹ️  No modified Dart files found in this package. Analyzing all Dart files.',
+            );
             return await getAllDartFiles(workingDir);
           }
 
-          print('📝 Analyzing ${filteredFiles.length} modified file(s) from uncommitted changes');
+          print(
+            '📝 Analyzing ${filteredFiles.length} modified file(s) from uncommitted changes',
+          );
           return filteredFiles;
         }
 
-        print('ℹ️  No changes detected. Analyzing all Dart files in the package.');
+        print(
+          'ℹ️  No changes detected. Analyzing all Dart files in the package.',
+        );
         return await getAllDartFiles(workingDir);
       }
 
       // Filter and adjust paths for monorepo support
-      final filteredFiles = _filterAndAdjustPaths(modifiedFiles, workingDir, gitRoot);
+      final filteredFiles = _filterAndAdjustPaths(
+        modifiedFiles,
+        workingDir,
+        gitRoot,
+      );
 
       if (filteredFiles.isEmpty) {
         final pkgPath = _getRelativePackagePath(workingDir, gitRoot);
-        print('ℹ️  No modified Dart files found in this package${pkgPath.isNotEmpty ? " ($pkgPath)" : ""}.');
+        print(
+          'ℹ️  No modified Dart files found in this package${pkgPath.isNotEmpty ? " ($pkgPath)" : ""}.',
+        );
         print('ℹ️  Analyzing all Dart files in the package.');
         return await getAllDartFiles(workingDir);
       }
 
-      print('📝 Analyzing ${filteredFiles.length} modified file(s) compared to $baseBranch');
+      print(
+        '📝 Analyzing ${filteredFiles.length} modified file(s) compared to $baseBranch',
+      );
       return filteredFiles;
     } catch (e) {
       print('⚠️  Git operation failed: $e');
@@ -261,7 +297,8 @@ class FileDetectorImpl implements FileDetector {
         // Only include files from the current package (or if we're at git root, include all)
         .where((file) {
           if (relativePath.isEmpty) return true; // At git root
-          return file.startsWith('$relativePath/') || file.startsWith(relativePath);
+          return file.startsWith('$relativePath/') ||
+              file.startsWith(relativePath);
         })
         // Remove the package path prefix to make paths relative to package
         .map((file) {

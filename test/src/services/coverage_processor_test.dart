@@ -563,7 +563,10 @@ void main() {
         );
 
         // Create a special parser that returns base first, then current
-        final deltaParser = _DeltaLcovParser(baseCoverageData, currentCoverageData);
+        final deltaParser = _DeltaLcovParser(
+          baseCoverageData,
+          currentCoverageData,
+        );
 
         final deltaProcessor = CoverageProcessorImpl(
           fileDetector: testFileDetector,
@@ -581,7 +584,10 @@ void main() {
         expect(result.files.first.path, equals('lib/src/service1.dart'));
         expect(result.files.first.lines, hasLength(1));
         expect(result.files.first.lines.first.lineNumber, equals(1));
-        expect(result.files.first.lines.first.hitCount, equals(1)); // Delta is +1
+        expect(
+          result.files.first.lines.first.hitCount,
+          equals(1),
+        ); // Delta is +1
       });
 
       test('should detect new files in current coverage', () async {
@@ -658,7 +664,10 @@ void main() {
           allFiles: ['lib/src/service1.dart', 'lib/src/service2.dart'],
         );
 
-        final deltaParser = _DeltaLcovParser(baseCoverageData, currentCoverageData);
+        final deltaParser = _DeltaLcovParser(
+          baseCoverageData,
+          currentCoverageData,
+        );
 
         final deltaProcessor = CoverageProcessorImpl(
           fileDetector: testFileDetector,
@@ -714,7 +723,10 @@ void main() {
         );
 
         // Both base and current have same coverage
-        final deltaParser = _DeltaLcovParser(sameCoverageData, sameCoverageData);
+        final deltaParser = _DeltaLcovParser(
+          sameCoverageData,
+          sameCoverageData,
+        );
 
         final deltaProcessor = CoverageProcessorImpl(
           fileDetector: testFileDetector,
@@ -793,7 +805,10 @@ void main() {
           allFiles: ['lib/src/service1.dart'],
         );
 
-        final deltaParser = _DeltaLcovParser(baseCoverageData, currentCoverageData);
+        final deltaParser = _DeltaLcovParser(
+          baseCoverageData,
+          currentCoverageData,
+        );
 
         final deltaProcessor = CoverageProcessorImpl(
           fileDetector: testFileDetector,
@@ -811,9 +826,15 @@ void main() {
         // Should include new lines (2 and 3) that weren't in base
         expect(file.lines.length, equals(2));
         // Line 2 should be covered (hitCount 1)
-        expect(file.lines.any((l) => l.lineNumber == 2 && l.hitCount == 1), isTrue);
+        expect(
+          file.lines.any((l) => l.lineNumber == 2 && l.hitCount == 1),
+          isTrue,
+        );
         // Line 3 should be uncovered (hitCount 0)
-        expect(file.lines.any((l) => l.lineNumber == 3 && l.hitCount == 0), isTrue);
+        expect(
+          file.lines.any((l) => l.lineNumber == 3 && l.hitCount == 0),
+          isTrue,
+        );
       });
     });
 
@@ -1133,7 +1154,6 @@ void main() {
         // Should still work with null packagePath
         expect(result, isA<CoverageData>());
       });
-
     });
   });
 }

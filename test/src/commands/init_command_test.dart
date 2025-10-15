@@ -9,8 +9,7 @@ import 'package:test/test.dart';
 class _MockLogger extends Mock implements Logger {}
 
 class _TestCommandRunner extends CommandRunner<int> {
-  _TestCommandRunner(InitCommand command)
-      : super('test', 'Test runner') {
+  _TestCommandRunner(InitCommand command) : super('test', 'Test runner') {
     addCommand(command);
   }
 }
@@ -56,35 +55,51 @@ void main() {
       expect(content, contains('dark_mode: true'));
     });
 
-    test('generates minimal configuration when --minimal flag is used', () async {
-      final command = InitCommand(logger: logger);
-      final runner = _TestCommandRunner(command);
-      final configPath = '${tempDir.path}/minimal_config.yaml';
+    test(
+      'generates minimal configuration when --minimal flag is used',
+      () async {
+        final command = InitCommand(logger: logger);
+        final runner = _TestCommandRunner(command);
+        final configPath = '${tempDir.path}/minimal_config.yaml';
 
-      final result = await runner.run(['init', '--minimal', '--output', configPath]);
+        final result = await runner.run([
+          'init',
+          '--minimal',
+          '--output',
+          configPath,
+        ]);
 
-      expect(result, equals(ExitCode.success.code));
-      expect(File(configPath).existsSync(), isTrue);
+        expect(result, equals(ExitCode.success.code));
+        expect(File(configPath).existsSync(), isTrue);
 
-      final content = await File(configPath).readAsString();
-      expect(content, contains('Minimal configuration'));
-      expect(content, contains('base_branch: "origin/main"'));
-    });
+        final content = await File(configPath).readAsString();
+        expect(content, contains('Minimal configuration'));
+        expect(content, contains('base_branch: "origin/main"'));
+      },
+    );
 
-    test('generates configuration with AI settings when --with-ai flag is used', () async {
-      final command = InitCommand(logger: logger);
-      final runner = _TestCommandRunner(command);
-      final configPath = '${tempDir.path}/ai_config.yaml';
+    test(
+      'generates configuration with AI settings when --with-ai flag is used',
+      () async {
+        final command = InitCommand(logger: logger);
+        final runner = _TestCommandRunner(command);
+        final configPath = '${tempDir.path}/ai_config.yaml';
 
-      final result = await runner.run(['init', '--with-ai', '--output', configPath]);
+        final result = await runner.run([
+          'init',
+          '--with-ai',
+          '--output',
+          configPath,
+        ]);
 
-      expect(result, equals(ExitCode.success.code));
-      expect(File(configPath).existsSync(), isTrue);
+        expect(result, equals(ExitCode.success.code));
+        expect(File(configPath).existsSync(), isTrue);
 
-      final content = await File(configPath).readAsString();
-      expect(content, contains('ai_config:'));
-      expect(content, contains('provider: "gemini"'));
-    });
+        final content = await File(configPath).readAsString();
+        expect(content, contains('ai_config:'));
+        expect(content, contains('provider: "gemini"'));
+      },
+    );
 
     test('uses custom base branch when --base-branch is specified', () async {
       final command = InitCommand(logger: logger);

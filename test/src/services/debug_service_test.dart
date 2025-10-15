@@ -82,10 +82,13 @@ void main() {
         debugService.setDebugMode(true);
         clearInteractions(logger);
 
-        debugService.logDebug('Test message', context: {
-          'key1': 'value1',
-          'key2': 42,
-        });
+        debugService.logDebug(
+          'Test message',
+          context: {
+            'key1': 'value1',
+            'key2': 42,
+          },
+        );
 
         verify(() => logger.detail('🔍 DEBUG: Test message')).called(1);
         verify(() => logger.detail('   key1: value1')).called(1);
@@ -107,7 +110,10 @@ void main() {
       test('does not log when debug mode is disabled', () {
         debugService.setDebugMode(false);
 
-        debugService.logPerformance('test_operation', const Duration(milliseconds: 100));
+        debugService.logPerformance(
+          'test_operation',
+          const Duration(milliseconds: 100),
+        );
 
         verifyNever(() => logger.detail(any()));
       });
@@ -116,9 +122,14 @@ void main() {
         debugService.setDebugMode(true);
         clearInteractions(logger);
 
-        debugService.logPerformance('test_operation', const Duration(milliseconds: 100));
+        debugService.logPerformance(
+          'test_operation',
+          const Duration(milliseconds: 100),
+        );
 
-        verify(() => logger.detail('⏱️  PERFORMANCE: test_operation took 100ms')).called(1);
+        verify(
+          () => logger.detail('⏱️  PERFORMANCE: test_operation took 100ms'),
+        ).called(1);
       });
 
       test('logs performance with metrics when debug mode is enabled', () {
@@ -134,7 +145,9 @@ void main() {
           },
         );
 
-        verify(() => logger.detail('⏱️  PERFORMANCE: test_operation took 150ms')).called(1);
+        verify(
+          () => logger.detail('⏱️  PERFORMANCE: test_operation took 150ms'),
+        ).called(1);
         verify(() => logger.detail('   files: 10')).called(1);
         verify(() => logger.detail('   lines: 1000')).called(1);
       });
@@ -149,7 +162,9 @@ void main() {
           metrics: {},
         );
 
-        verify(() => logger.detail('⏱️  PERFORMANCE: test_operation took 200ms')).called(1);
+        verify(
+          () => logger.detail('⏱️  PERFORMANCE: test_operation took 200ms'),
+        ).called(1);
         verifyNever(() => logger.detail(any(that: contains('   '))));
       });
     });
@@ -172,8 +187,12 @@ void main() {
         verify(() => logger.detail('💻 SYSTEM INFO:')).called(1);
         verify(() => logger.detail(any(that: contains('Platform:')))).called(1);
         verify(() => logger.detail(any(that: contains('Version:')))).called(1);
-        verify(() => logger.detail(any(that: contains('Dart version:')))).called(1);
-        verify(() => logger.detail(any(that: contains('Working directory:')))).called(1);
+        verify(
+          () => logger.detail(any(that: contains('Dart version:'))),
+        ).called(1);
+        verify(
+          () => logger.detail(any(that: contains('Working directory:'))),
+        ).called(1);
       });
 
       test('checks Dart CLI availability', () async {
@@ -191,7 +210,9 @@ void main() {
 
         await debugService.logSystemInfo();
 
-        verify(() => logger.detail(any(that: contains('Flutter CLI:')))).called(1);
+        verify(
+          () => logger.detail(any(that: contains('Flutter CLI:'))),
+        ).called(1);
       });
     });
 
@@ -249,7 +270,9 @@ void main() {
         await debugService.logProjectStructure('${tempDir.path}/nonexistent');
 
         verify(() => logger.detail('📁 PROJECT STRUCTURE:')).called(1);
-        verify(() => logger.detail(any(that: contains('does not exist')))).called(1);
+        verify(
+          () => logger.detail(any(that: contains('does not exist'))),
+        ).called(1);
       });
 
       test('checks for key project files and directories', () async {
@@ -263,8 +286,12 @@ void main() {
 
         await debugService.logProjectStructure(tempDir.path);
 
-        verify(() => logger.detail(any(that: contains('pubspec.yaml')))).called(1);
-        verify(() => logger.detail(any(that: contains('lib/')))).called(greaterThan(0));
+        verify(
+          () => logger.detail(any(that: contains('pubspec.yaml'))),
+        ).called(1);
+        verify(
+          () => logger.detail(any(that: contains('lib/'))),
+        ).called(greaterThan(0));
         verify(() => logger.detail(any(that: contains('test/')))).called(1);
       });
 
@@ -275,12 +302,18 @@ void main() {
         // Create test directory with some test files
         final testDir = Directory('${tempDir.path}/test');
         await testDir.create();
-        await File('${tempDir.path}/test/test1_test.dart').writeAsString('void main() {}');
-        await File('${tempDir.path}/test/test2_test.dart').writeAsString('void main() {}');
+        await File(
+          '${tempDir.path}/test/test1_test.dart',
+        ).writeAsString('void main() {}');
+        await File(
+          '${tempDir.path}/test/test2_test.dart',
+        ).writeAsString('void main() {}');
 
         await debugService.logProjectStructure(tempDir.path);
 
-        verify(() => logger.detail(any(that: contains('Test files:')))).called(1);
+        verify(
+          () => logger.detail(any(that: contains('Test files:'))),
+        ).called(1);
       });
 
       test('handles errors when analyzing project structure', () async {
@@ -383,7 +416,7 @@ void main() {
         );
 
         // Wait a bit to ensure different timestamp
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         final reportPath2 = await debugService.createDebugReport(
           projectPath: tempDir.path,
@@ -476,11 +509,21 @@ void main() {
 
         // Verify all logging occurred
         verify(() => logger.progress('Testing...')).called(1);
-        verify(() => logger.detail(any(that: contains('DEBUG:')))).called(greaterThan(0));
-        verify(() => logger.detail(any(that: contains('PERFORMANCE:')))).called(greaterThan(0));
-        verify(() => logger.detail(any(that: contains('SYSTEM INFO:')))).called(greaterThan(0));
-        verify(() => logger.detail(any(that: contains('GIT INFO:')))).called(greaterThan(0));
-        verify(() => logger.detail(any(that: contains('PROJECT STRUCTURE:')))).called(greaterThan(0));
+        verify(
+          () => logger.detail(any(that: contains('DEBUG:'))),
+        ).called(greaterThan(0));
+        verify(
+          () => logger.detail(any(that: contains('PERFORMANCE:'))),
+        ).called(greaterThan(0));
+        verify(
+          () => logger.detail(any(that: contains('SYSTEM INFO:'))),
+        ).called(greaterThan(0));
+        verify(
+          () => logger.detail(any(that: contains('GIT INFO:'))),
+        ).called(greaterThan(0));
+        verify(
+          () => logger.detail(any(that: contains('PROJECT STRUCTURE:'))),
+        ).called(greaterThan(0));
       });
 
       test('operations are silent when debug mode is disabled', () async {
@@ -499,4 +542,3 @@ void main() {
     });
   });
 }
-

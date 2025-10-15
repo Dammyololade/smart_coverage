@@ -150,7 +150,13 @@ class ConfigServiceImpl implements ConfigService {
     if (parts.length == 1) return snake;
 
     return parts.first +
-        parts.skip(1).map((part) => part.isEmpty ? '' : part[0].toUpperCase() + part.substring(1)).join();
+        parts
+            .skip(1)
+            .map(
+              (part) =>
+                  part.isEmpty ? '' : part[0].toUpperCase() + part.substring(1),
+            )
+            .join();
   }
 
   @override
@@ -247,10 +253,13 @@ class ConfigServiceImpl implements ConfigService {
     final aiConfigMap = config['aiConfig'] as Map<String, dynamic>? ?? {};
 
     final packagePath = config['packagePath'] as String? ?? '.';
-    final outputDirRaw = config['outputDir'] as String? ?? 'coverage/smart_coverage';
+    final outputDirRaw =
+        config['outputDir'] as String? ?? 'coverage/smart_coverage';
 
     // Resolve output directory relative to package path if it's a relative path
-    final outputDir = path.isAbsolute(outputDirRaw) ? outputDirRaw : path.join(packagePath, outputDirRaw);
+    final outputDir = path.isAbsolute(outputDirRaw)
+        ? outputDirRaw
+        : path.join(packagePath, outputDirRaw);
 
     return SmartCoverageConfig(
       packagePath: packagePath,
@@ -272,10 +281,19 @@ class ConfigServiceImpl implements ConfigService {
         cliArgs: _parseStringList(aiConfigMap['cliArgs']) ?? [],
         cliTimeout: aiConfigMap['cliTimeout'] as int? ?? 60,
         fallbackEnabled: aiConfigMap['fallbackEnabled'] as bool? ?? true,
-        fallbackOrder: _parseStringList(aiConfigMap['fallbackOrder']) ?? ['local', 'api'],
-        cacheEnabled: (aiConfigMap['cache'] as Map<String, dynamic>?)?['enabled'] as bool? ?? true,
-        cacheDirectory: (aiConfigMap['cache'] as Map<String, dynamic>?)?['directory'] as String? ?? '.smart_coverage_cache',
-        cacheExpirationHours: (aiConfigMap['cache'] as Map<String, dynamic>?)?['expirationHours'] as int?,
+        fallbackOrder:
+            _parseStringList(aiConfigMap['fallbackOrder']) ?? ['local', 'api'],
+        cacheEnabled:
+            (aiConfigMap['cache'] as Map<String, dynamic>?)?['enabled']
+                as bool? ??
+            true,
+        cacheDirectory:
+            (aiConfigMap['cache'] as Map<String, dynamic>?)?['directory']
+                as String? ??
+            '.smart_coverage_cache',
+        cacheExpirationHours:
+            (aiConfigMap['cache'] as Map<String, dynamic>?)?['expirationHours']
+                as int?,
       ),
     );
   }

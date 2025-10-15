@@ -37,7 +37,9 @@ void main() {
         // Create a valid project structure
         final projectDir = Directory('${tempDir.path}/valid_project');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
         await Directory('${projectDir.path}/test').create();
 
@@ -77,7 +79,11 @@ void main() {
         expect(result.isValid, isFalse);
         expect(result.errors.length, greaterThan(0));
         expect(
-          result.errors.any((e) => e.field == 'packagePath' && e.message.contains('cannot be empty')),
+          result.errors.any(
+            (e) =>
+                e.field == 'packagePath' &&
+                e.message.contains('cannot be empty'),
+          ),
           isTrue,
         );
       });
@@ -99,7 +105,11 @@ void main() {
 
         expect(result.isValid, isFalse);
         expect(
-          result.errors.any((e) => e.field == 'packagePath' && e.message.contains('does not exist')),
+          result.errors.any(
+            (e) =>
+                e.field == 'packagePath' &&
+                e.message.contains('does not exist'),
+          ),
           isTrue,
         );
       });
@@ -124,7 +134,10 @@ void main() {
 
         expect(result.isValid, isFalse);
         expect(
-          result.errors.any((e) => e.field == 'packagePath' && e.message.contains('pubspec.yaml')),
+          result.errors.any(
+            (e) =>
+                e.field == 'packagePath' && e.message.contains('pubspec.yaml'),
+          ),
           isTrue,
         );
       });
@@ -132,7 +145,9 @@ void main() {
       test('warns about missing lib directory', () async {
         final projectDir = Directory('${tempDir.path}/no_lib');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
 
         final config = SmartCoverageConfig(
           packagePath: projectDir.path,
@@ -149,7 +164,10 @@ void main() {
         final result = await validator.validateConfig(config);
 
         expect(
-          result.warnings.any((w) => w.field == 'packagePath' && w.message.contains('lib directory')),
+          result.warnings.any(
+            (w) =>
+                w.field == 'packagePath' && w.message.contains('lib directory'),
+          ),
           isTrue,
         );
       });
@@ -157,7 +175,9 @@ void main() {
       test('suggests creating test directory', () async {
         final projectDir = Directory('${tempDir.path}/no_test');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -175,7 +195,11 @@ void main() {
         final result = await validator.validateConfig(config);
 
         expect(
-          result.suggestions.any((s) => s.field == 'packagePath' && s.message.contains('test directory')),
+          result.suggestions.any(
+            (s) =>
+                s.field == 'packagePath' &&
+                s.message.contains('test directory'),
+          ),
           isTrue,
         );
       });
@@ -183,7 +207,9 @@ void main() {
       test('warns about empty base branch', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -201,7 +227,9 @@ void main() {
         final result = await validator.validateConfig(config);
 
         expect(
-          result.warnings.any((w) => w.field == 'baseBranch' && w.message.contains('empty')),
+          result.warnings.any(
+            (w) => w.field == 'baseBranch' && w.message.contains('empty'),
+          ),
           isTrue,
         );
       });
@@ -209,7 +237,9 @@ void main() {
       test('detects empty output directory', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -228,7 +258,10 @@ void main() {
 
         expect(result.isValid, isFalse);
         expect(
-          result.errors.any((e) => e.field == 'outputDir' && e.message.contains('cannot be empty')),
+          result.errors.any(
+            (e) =>
+                e.field == 'outputDir' && e.message.contains('cannot be empty'),
+          ),
           isTrue,
         );
       });
@@ -236,7 +269,9 @@ void main() {
       test('warns about empty output formats', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -254,7 +289,11 @@ void main() {
         final result = await validator.validateConfig(config);
 
         expect(
-          result.warnings.any((w) => w.field == 'outputFormats' && w.message.contains('No output formats')),
+          result.warnings.any(
+            (w) =>
+                w.field == 'outputFormats' &&
+                w.message.contains('No output formats'),
+          ),
           isTrue,
         );
       });
@@ -262,7 +301,9 @@ void main() {
       test('detects invalid output format', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -281,7 +322,11 @@ void main() {
 
         expect(result.isValid, isFalse);
         expect(
-          result.errors.any((e) => e.field == 'outputFormats' && e.message.contains('Invalid output format')),
+          result.errors.any(
+            (e) =>
+                e.field == 'outputFormats' &&
+                e.message.contains('Invalid output format'),
+          ),
           isTrue,
         );
       });
@@ -289,7 +334,9 @@ void main() {
       test('suggests adding console format', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -307,41 +354,56 @@ void main() {
         final result = await validator.validateConfig(config);
 
         expect(
-          result.suggestions.any((s) => s.field == 'outputFormats' && s.message.contains('Console output format not included')),
+          result.suggestions.any(
+            (s) =>
+                s.field == 'outputFormats' &&
+                s.message.contains('Console output format not included'),
+          ),
           isTrue,
         );
       });
 
-      test('suggests adding HTML format when only console is specified', () async {
-        final projectDir = Directory('${tempDir.path}/valid');
-        await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
-        await Directory('${projectDir.path}/lib').create();
+      test(
+        'suggests adding HTML format when only console is specified',
+        () async {
+          final projectDir = Directory('${tempDir.path}/valid');
+          await projectDir.create();
+          await File(
+            '${projectDir.path}/pubspec.yaml',
+          ).writeAsString('name: test');
+          await Directory('${projectDir.path}/lib').create();
 
-        final config = SmartCoverageConfig(
-          packagePath: projectDir.path,
-          baseBranch: 'main',
-          outputDir: '${tempDir.path}/output',
-          skipTests: false,
-          testInsights: false,
-          codeReview: false,
-          darkMode: true,
-          outputFormats: const ['console'],
-          aiConfig: const AiConfig(provider: 'gemini'),
-        );
+          final config = SmartCoverageConfig(
+            packagePath: projectDir.path,
+            baseBranch: 'main',
+            outputDir: '${tempDir.path}/output',
+            skipTests: false,
+            testInsights: false,
+            codeReview: false,
+            darkMode: true,
+            outputFormats: const ['console'],
+            aiConfig: const AiConfig(provider: 'gemini'),
+          );
 
-        final result = await validator.validateConfig(config);
+          final result = await validator.validateConfig(config);
 
-        expect(
-          result.suggestions.any((s) => s.field == 'outputFormats' && s.message.contains('Only console output')),
-          isTrue,
-        );
-      });
+          expect(
+            result.suggestions.any(
+              (s) =>
+                  s.field == 'outputFormats' &&
+                  s.message.contains('Only console output'),
+            ),
+            isTrue,
+          );
+        },
+      );
 
       test('detects invalid AI provider', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -360,7 +422,11 @@ void main() {
 
         expect(result.isValid, isFalse);
         expect(
-          result.errors.any((e) => e.field == 'aiConfig.provider' && e.message.contains('Invalid AI provider')),
+          result.errors.any(
+            (e) =>
+                e.field == 'aiConfig.provider' &&
+                e.message.contains('Invalid AI provider'),
+          ),
           isTrue,
         );
       });
@@ -368,7 +434,9 @@ void main() {
       test('detects invalid AI provider type', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -398,7 +466,9 @@ void main() {
       test('warns about missing API key environment variable', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -427,7 +497,9 @@ void main() {
       test('detects negative timeout', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -449,7 +521,11 @@ void main() {
 
         expect(result.isValid, isFalse);
         expect(
-          result.errors.any((e) => e.field == 'aiConfig.timeout' && e.message.contains('must be positive')),
+          result.errors.any(
+            (e) =>
+                e.field == 'aiConfig.timeout' &&
+                e.message.contains('must be positive'),
+          ),
           isTrue,
         );
       });
@@ -457,7 +533,9 @@ void main() {
       test('warns about very low timeout', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -478,7 +556,10 @@ void main() {
         final result = await validator.validateConfig(config);
 
         expect(
-          result.warnings.any((w) => w.field == 'aiConfig.timeout' && w.message.contains('very low')),
+          result.warnings.any(
+            (w) =>
+                w.field == 'aiConfig.timeout' && w.message.contains('very low'),
+          ),
           isTrue,
         );
       });
@@ -486,7 +567,9 @@ void main() {
       test('detects negative CLI timeout', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -516,7 +599,9 @@ void main() {
       test('detects invalid fallback order', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -546,7 +631,9 @@ void main() {
       test('detects AI features enabled without provider', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -565,40 +652,52 @@ void main() {
 
         expect(result.isValid, isFalse);
         expect(
-          result.errors.any((e) => e.field == 'aiConfig' && e.message.contains('AI features enabled')),
+          result.errors.any(
+            (e) =>
+                e.field == 'aiConfig' &&
+                e.message.contains('AI features enabled'),
+          ),
           isTrue,
         );
       });
 
-      test('suggests enabling AI features when provider is configured', () async {
-        final projectDir = Directory('${tempDir.path}/valid');
-        await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
-        await Directory('${projectDir.path}/lib').create();
+      test(
+        'suggests enabling AI features when provider is configured',
+        () async {
+          final projectDir = Directory('${tempDir.path}/valid');
+          await projectDir.create();
+          await File(
+            '${projectDir.path}/pubspec.yaml',
+          ).writeAsString('name: test');
+          await Directory('${projectDir.path}/lib').create();
 
-        final config = SmartCoverageConfig(
-          packagePath: projectDir.path,
-          baseBranch: 'main',
-          outputDir: '${tempDir.path}/output',
-          skipTests: false,
-          testInsights: false,
-          codeReview: false,
-          darkMode: true,
-          outputFormats: const ['console'],
-          aiConfig: const AiConfig(provider: 'gemini'),
-        );
+          final config = SmartCoverageConfig(
+            packagePath: projectDir.path,
+            baseBranch: 'main',
+            outputDir: '${tempDir.path}/output',
+            skipTests: false,
+            testInsights: false,
+            codeReview: false,
+            darkMode: true,
+            outputFormats: const ['console'],
+            aiConfig: const AiConfig(provider: 'gemini'),
+          );
 
-        final result = await validator.validateConfig(config);
+          final result = await validator.validateConfig(config);
 
-        expect(
-          result.suggestions.any((s) => s.message.contains('AI provider configured but AI features disabled')),
-          isTrue,
-        );
-      });
+          expect(
+            result.suggestions.any(
+              (s) => s.message.contains(
+                'AI provider configured but AI features disabled',
+              ),
+            ),
+            isTrue,
+          );
+        },
+      );
     });
 
     group('validateAndDisplay', () {
-
       test('displays errors for invalid config', () async {
         final config = SmartCoverageConfig(
           packagePath: '',
@@ -615,13 +714,17 @@ void main() {
         final isValid = await validator.validateAndDisplay(config, logger);
 
         expect(isValid, isFalse);
-        verify(() => logger.err(any(that: contains('Configuration Validation')))).called(greaterThan(0));
+        verify(
+          () => logger.err(any(that: contains('Configuration Validation'))),
+        ).called(greaterThan(0));
       });
 
       test('displays warnings', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
 
         final config = SmartCoverageConfig(
           packagePath: projectDir.path,
@@ -643,7 +746,9 @@ void main() {
       test('displays suggestions', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -721,7 +826,9 @@ void main() {
         final fixes = validator.suggestFixes(result);
 
         expect(
-          fixes.any((f) => f.contains('dart create') || f.contains('flutter create')),
+          fixes.any(
+            (f) => f.contains('dart create') || f.contains('flutter create'),
+          ),
           isTrue,
         );
       });
@@ -729,7 +836,9 @@ void main() {
       test('suggests AI configuration setup', () async {
         final projectDir = Directory('${tempDir.path}/valid');
         await projectDir.create();
-        await File('${projectDir.path}/pubspec.yaml').writeAsString('name: test');
+        await File(
+          '${projectDir.path}/pubspec.yaml',
+        ).writeAsString('name: test');
         await Directory('${projectDir.path}/lib').create();
 
         final config = SmartCoverageConfig(
@@ -832,4 +941,3 @@ void main() {
     });
   });
 }
-

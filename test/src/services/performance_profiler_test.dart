@@ -155,10 +155,10 @@ void main() {
         profiler.enable();
 
         await profiler.profileFunction('op1', () async {
-          await Future.delayed(const Duration(milliseconds: 10));
+          await Future<void>.delayed(const Duration(milliseconds: 10));
         });
         await profiler.profileFunction('op2', () async {
-          await Future.delayed(const Duration(milliseconds: 10));
+          await Future<void>.delayed(const Duration(milliseconds: 10));
         });
 
         final summary = profiler.getSummary();
@@ -183,10 +183,10 @@ void main() {
         profiler.enable();
 
         await profiler.profileFunction('test', () async {
-          await Future.delayed(const Duration(milliseconds: 10));
+          await Future<void>.delayed(const Duration(milliseconds: 10));
         });
         await profiler.profileFunction('test', () async {
-          await Future.delayed(const Duration(milliseconds: 10));
+          await Future<void>.delayed(const Duration(milliseconds: 10));
         });
 
         final summary = profiler.getSummary();
@@ -198,10 +198,10 @@ void main() {
         profiler.enable();
 
         await profiler.profileFunction('test', () async {
-          await Future.delayed(const Duration(milliseconds: 5));
+          await Future<void>.delayed(const Duration(milliseconds: 5));
         });
         await profiler.profileFunction('test', () async {
-          await Future.delayed(const Duration(milliseconds: 20));
+          await Future<void>.delayed(const Duration(milliseconds: 20));
         });
 
         final summary = profiler.getSummary();
@@ -338,13 +338,13 @@ void main() {
         profiler.enable();
 
         await profiler.profileFunction('load_data', () async {
-          await Future.delayed(const Duration(milliseconds: 10));
+          await Future<void>.delayed(const Duration(milliseconds: 10));
         });
         await profiler.profileFunction('process_data', () async {
-          await Future.delayed(const Duration(milliseconds: 20));
+          await Future<void>.delayed(const Duration(milliseconds: 20));
         });
         await profiler.profileFunction('load_data', () async {
-          await Future.delayed(const Duration(milliseconds: 10));
+          await Future<void>.delayed(const Duration(milliseconds: 10));
         });
 
         final summary = profiler.getSummary();
@@ -360,11 +360,11 @@ void main() {
 
         // Profile various operations
         await profiler.profileFunction('op1', () async {
-          await Future.delayed(const Duration(milliseconds: 5));
+          await Future<void>.delayed(const Duration(milliseconds: 5));
         }, metadata: {'type': 'fast'});
 
         await profiler.profileFunction('op2', () async {
-          await Future.delayed(const Duration(milliseconds: 15));
+          await Future<void>.delayed(const Duration(milliseconds: 15));
         }, metadata: {'type': 'slow'});
 
         // Get summary
@@ -384,4 +384,3 @@ void main() {
     });
   });
 }
-

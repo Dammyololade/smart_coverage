@@ -42,52 +42,56 @@ void main() {
       expect(service.providerType, equals(AiProviderType.local));
     });
 
-    test('creates GeminiApiService when provider is gemini and type is api',
-        () async {
-      config = const SmartCoverageConfig(
-        packagePath: '.',
-        baseBranch: 'main',
-        outputDir: 'coverage',
-        skipTests: false,
-        testInsights: false,
-        codeReview: false,
-        darkMode: false,
-        outputFormats: ['console'],
-        aiConfig: AiConfig(
-          provider: 'gemini',
-          providerType: 'api',
-        ),
-      );
+    test(
+      'creates GeminiApiService when provider is gemini and type is api',
+      () async {
+        config = const SmartCoverageConfig(
+          packagePath: '.',
+          baseBranch: 'main',
+          outputDir: 'coverage',
+          skipTests: false,
+          testInsights: false,
+          codeReview: false,
+          darkMode: false,
+          outputFormats: ['console'],
+          aiConfig: AiConfig(
+            provider: 'gemini',
+            providerType: 'api',
+          ),
+        );
 
-      final service = await AiServiceFactory.create(config);
+        final service = await AiServiceFactory.create(config);
 
-      expect(service, isA<GeminiApiService>());
-      expect(service, isA<ApiAiService>());
-      expect(service.providerType, equals(AiProviderType.api));
-    });
+        expect(service, isA<GeminiApiService>());
+        expect(service, isA<ApiAiService>());
+        expect(service.providerType, equals(AiProviderType.api));
+      },
+    );
 
-    test('creates GeminiCliService when provider is gemini and type is local',
-        () async {
-      config = const SmartCoverageConfig(
-        packagePath: '.',
-        baseBranch: 'main',
-        outputDir: 'coverage',
-        skipTests: false,
-        testInsights: false,
-        codeReview: false,
-        darkMode: false,
-        outputFormats: ['console'],
-        aiConfig: AiConfig(
-          provider: 'gemini',
-          providerType: 'local',
-        ),
-      );
+    test(
+      'creates GeminiCliService when provider is gemini and type is local',
+      () async {
+        config = const SmartCoverageConfig(
+          packagePath: '.',
+          baseBranch: 'main',
+          outputDir: 'coverage',
+          skipTests: false,
+          testInsights: false,
+          codeReview: false,
+          darkMode: false,
+          outputFormats: ['console'],
+          aiConfig: AiConfig(
+            provider: 'gemini',
+            providerType: 'local',
+          ),
+        );
 
-      final service = await AiServiceFactory.create(config);
+        final service = await AiServiceFactory.create(config);
 
-      expect(service, isA<GeminiCliService>());
-      expect(service, isA<LocalAiService>());
-    });
+        expect(service, isA<GeminiCliService>());
+        expect(service, isA<LocalAiService>());
+      },
+    );
 
     test('throws UnsupportedError for unknown provider', () async {
       config = const SmartCoverageConfig(
@@ -174,8 +178,7 @@ void main() {
         expect(version, isNot(equals('unknown')));
       });
 
-      test('returns unknown when command does not support --version',
-          () async {
+      test('returns unknown when command does not support --version', () async {
         final testService = GeminiCliService(
           aiConfig.copyWith(cliCommand: 'echo'),
         );
@@ -481,30 +484,32 @@ void main() {
       );
     });
 
-    test('Factory throws StateError when no provider available in auto mode',
-        () async {
-      final config = SmartCoverageConfig(
-        packagePath: '.',
-        baseBranch: 'main',
-        outputDir: 'coverage',
-        skipTests: false,
-        testInsights: false,
-        codeReview: false,
-        darkMode: false,
-        outputFormats: const ['console'],
-        aiConfig: AiConfig(
-          provider: 'gemini',
-          providerType: 'auto',
-          cliCommand: 'nonexistent-cli-command-xyz',
-          apiKeyEnv: 'NONEXISTENT_API_KEY_${DateTime.now().millisecondsSinceEpoch}',
-        ),
-      );
+    test(
+      'Factory throws StateError when no provider available in auto mode',
+      () async {
+        final config = SmartCoverageConfig(
+          packagePath: '.',
+          baseBranch: 'main',
+          outputDir: 'coverage',
+          skipTests: false,
+          testInsights: false,
+          codeReview: false,
+          darkMode: false,
+          outputFormats: const ['console'],
+          aiConfig: AiConfig(
+            provider: 'gemini',
+            providerType: 'auto',
+            cliCommand: 'nonexistent-cli-command-xyz',
+            apiKeyEnv:
+                'NONEXISTENT_API_KEY_${DateTime.now().millisecondsSinceEpoch}',
+          ),
+        );
 
-      expect(
-        () => AiServiceFactory.create(config),
-        throwsA(isA<Error>()),
-      );
-    });
+        expect(
+          () => AiServiceFactory.create(config),
+          throwsA(isA<Error>()),
+        );
+      },
+    );
   });
 }
-
