@@ -301,11 +301,11 @@ class ReportGeneratorImpl implements ReportGenerator {
     final content = await indexFile.readAsString();
 
     // Check if AI-generated files exist
-    final aiInsightsExists = await File('$outputDir/ai_insights.html').exists();
+    final testInsightsExists = await File('$outputDir/test_insights.html').exists();
     final codeReviewExists = await File('$outputDir/code_review.html').exists();
 
-    // Only proceed if at least one AI-generated file exists
-    if (!aiInsightsExists && !codeReviewExists) return;
+    // Only proceed if at least one insights file exists
+    if (!testInsightsExists && !codeReviewExists) return;
 
     // Create navigation buttons HTML with center alignment
     final navigationButtons = StringBuffer();
@@ -319,9 +319,9 @@ class ReportGeneratorImpl implements ReportGenerator {
       '      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">',
     );
 
-    if (aiInsightsExists) {
+    if (testInsightsExists) {
       navigationButtons.writeln(
-        '        <a href="ai_insights.html" style="display: inline-block; padding: 12px 20px; background: var(--success-color, #238636); color: var(--button-text, #ffffff); text-decoration: none; border-radius: 6px; font-weight: bold; transition: all 0.3s; border: 1px solid var(--success-border, #2ea043);">📊 AI Insights</a>',
+        '<a href="test_insights.html" style="display: inline-block; padding: 12px 20px; background: var(--success-color, #238636); color: var(--button-text, #ffffff); text-decoration: none; border-radius: 6px; font-weight: bold; transition: all 0.3s; border: 1px solid var(--success-border, #2ea043);">📊 Test Insights</a>',
       );
     }
 

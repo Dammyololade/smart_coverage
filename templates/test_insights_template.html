@@ -418,33 +418,59 @@
         // Initialize Highlight.js
         hljs.highlightAll();
         
-        // Add copy button functionality to code blocks
-        document.querySelectorAll('pre[class*="language-"]').forEach(function(pre) {
+        // Add copy button functionality to code blocks after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('pre').forEach(function(pre) {
+                // Check if this pre contains code with language class or has language class itself
+                var hasLanguageCode = pre.querySelector('code[class*="language-"]') || pre.className.includes('language-');
+                if (!hasLanguageCode) return;
             var button = document.createElement('button');
             button.className = 'copy-button';
             button.textContent = 'Copy';
-            button.style.cssText = 'position: absolute; top: 8px; right: 8px; background: #4a5568; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s;';
+            button.style.cssText = 'position: absolute; top: 12px; right: 12px; background: #21262d; color: #f0f6fc; border: 1px solid #30363d; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; z-index: 1; opacity: 0.7;';
             
             button.addEventListener('click', function() {
-                var code = pre.querySelector('code');
-                navigator.clipboard.writeText(code.textContent).then(function() {
+                var code = pre.querySelector('code') || pre;
+                var textToCopy = code.textContent || code.innerText;
+                navigator.clipboard.writeText(textToCopy).then(function() {
                     button.textContent = 'Copied!';
+                    button.style.background = '#238636';
                     setTimeout(function() {
                         button.textContent = 'Copy';
+                        button.style.background = '#21262d';
+                    }, 2000);
+                }).catch(function() {
+                    // Fallback for older browsers
+                    var textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    button.textContent = 'Copied!';
+                    button.style.background = '#238636';
+                    setTimeout(function() {
+                        button.textContent = 'Copy';
+                        button.style.background = '#21262d';
                     }, 2000);
                 });
             });
             
             button.addEventListener('mouseenter', function() {
                 button.style.opacity = '1';
+                button.style.background = '#30363d';
             });
             
             button.addEventListener('mouseleave', function() {
                 button.style.opacity = '0.7';
+                if (button.textContent === 'Copy') {
+                    button.style.background = '#21262d';
+                }
             });
             
             pre.style.position = 'relative';
             pre.appendChild(button);
+        });
         });
     </script>
 </body>

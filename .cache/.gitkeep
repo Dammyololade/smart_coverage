@@ -1,0 +1,2 @@
+# Cache directory for Gemini responses
+# This directory stores cached AI responses to avoid repeated API calls during testing

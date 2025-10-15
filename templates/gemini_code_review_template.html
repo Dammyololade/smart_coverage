@@ -188,17 +188,19 @@
             border: 1px solid #30363d;
         }
         
+        /* Enhanced code block styling for better editor-like appearance */
         .content pre {
-            background: #161b22;
+            background: #0d1117;
             border: 1px solid #30363d;
             border-radius: 8px;
             padding: 20px;
-            overflow-x: auto;
             margin: 24px 0;
+            overflow-x: auto;
             font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.6;
             position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
         
         .content pre code {
@@ -207,15 +209,20 @@
             border-radius: 0;
             font-size: inherit;
             border: none;
+            color: #e6edf3;
+            display: block;
+            white-space: pre;
+            word-wrap: normal;
         }
         
-        /* Highlight.js overrides for Dart */
+        /* Enhanced Dart syntax highlighting */
         pre code.hljs {
             background: #0d1117 !important;
             color: #e6edf3 !important;
             font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
             font-size: 14px;
             line-height: 1.6;
+            padding: 0;
         }
         
         pre.hljs, pre[class*="language-"] {
@@ -226,11 +233,189 @@
             padding: 20px;
             overflow-x: auto;
             position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
         
         code.hljs, code[class*="language-"] {
             background: transparent !important;
             color: #e6edf3 !important;
+        }
+        
+        /* Improved inline code styling */
+        .content code:not(pre code) {
+            background: #21262d;
+            color: #f78166;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 13px;
+            border: 1px solid #30363d;
+        }
+        
+        /* Code block language label */
+        .content pre::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: #21262d;
+            color: #8b949e;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #30363d;
+        }
+        
+        /* Enhanced copy button for code blocks */
+        .copy-button {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #21262d;
+            color: #f0f6fc;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 1;
+            opacity: 0.8;
+        }
+        
+        .copy-button:hover {
+            background: #30363d;
+            border-color: #58a6ff;
+            opacity: 1;
+            transform: translateY(-1px);
+        }
+        
+        /* Code comparison blocks for before/after examples */
+        .code-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 24px 0;
+            min-height: 200px;
+            width: 100%;
+        }
+        
+        .code-before, .code-after {
+            position: relative;
+            overflow: visible;
+            padding-top: 24px;
+            width: 100%;
+            box-sizing: border-box;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .code-comparison .code-before pre, 
+        .code-comparison .code-after pre {
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: auto;
+            margin: 0 !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            padding: 20px !important;
+            background: #0d1117 !important;
+            border: 1px solid #30363d !important;
+            border-radius: 8px !important;
+            font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace !important;
+            font-size: 14px !important;
+            line-height: 1.6 !important;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        .code-before::before {
+            content: "❌ Before";
+            position: absolute;
+            top: 4px;
+            left: 12px;
+            background: #da3633;
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 2;
+        }
+        
+        .code-after::before {
+            content: "✅ After";
+            position: absolute;
+            top: 4px;
+            left: 12px;
+            background: #238636;
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 2;
+        }
+        
+        /* Line numbers for code blocks */
+        .content pre.line-numbers {
+            padding-left: 60px;
+        }
+        
+        .content pre.line-numbers::before {
+            content: counter(line);
+            counter-increment: line;
+            position: absolute;
+            left: 12px;
+            top: 20px;
+            color: #6e7681;
+            font-size: 12px;
+            line-height: 1.6;
+            text-align: right;
+            width: 30px;
+            border-right: 1px solid #30363d;
+            padding-right: 8px;
+        }
+        
+        /* Improved syntax highlighting colors for Dart */
+        .language-dart .hljs-keyword {
+            color: #ff79c6 !important;
+            font-weight: 500;
+        }
+        
+        .language-dart .hljs-string {
+            color: #f1fa8c !important;
+        }
+        
+        .language-dart .hljs-comment {
+            color: #6272a4 !important;
+            font-style: italic;
+        }
+        
+        .language-dart .hljs-number {
+            color: #bd93f9 !important;
+        }
+        
+        .language-dart .hljs-type {
+            color: #8be9fd !important;
+        }
+        
+        .language-dart .hljs-function {
+            color: #50fa7b !important;
+        }
+        
+        .language-dart .hljs-variable {
+            color: #f8f8f2 !important;
+        }
+        
+        .language-dart .hljs-operator {
+            color: #ff79c6 !important;
+        }
+        
+        .language-dart .hljs-class {
+            color: #8be9fd !important;
+            font-weight: 600;
         }
         
         /* Copy button for code blocks */
@@ -621,6 +806,64 @@
     </div>
     
     <script>
+        // Initialize Highlight.js
+        hljs.highlightAll();
+        
+        // Add copy button functionality to code blocks after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('pre').forEach(function(pre) {
+                // Check if this pre contains code with language class or has language class itself
+                var hasLanguageCode = pre.querySelector('code[class*="language-"]') || pre.className.includes('language-');
+                if (!hasLanguageCode) return;
+            var button = document.createElement('button');
+            button.className = 'copy-button';
+            button.textContent = 'Copy';
+            button.style.cssText = 'position: absolute; top: 12px; right: 12px; background: #21262d; color: #f0f6fc; border: 1px solid #30363d; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; z-index: 1; opacity: 0.7;';
+            
+            button.addEventListener('click', function() {
+                var code = pre.querySelector('code') || pre;
+                var textToCopy = code.textContent || code.innerText;
+                navigator.clipboard.writeText(textToCopy).then(function() {
+                    button.textContent = 'Copied!';
+                    button.style.background = '#238636';
+                    setTimeout(function() {
+                        button.textContent = 'Copy';
+                        button.style.background = '#21262d';
+                    }, 2000);
+                }).catch(function() {
+                    // Fallback for older browsers
+                    var textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    button.textContent = 'Copied!';
+                    button.style.background = '#238636';
+                    setTimeout(function() {
+                        button.textContent = 'Copy';
+                        button.style.background = '#21262d';
+                    }, 2000);
+                });
+            });
+            
+            button.addEventListener('mouseenter', function() {
+                button.style.opacity = '1';
+                button.style.background = '#30363d';
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                button.style.opacity = '0.7';
+                if (button.textContent === 'Copy') {
+                    button.style.background = '#21262d';
+                }
+            });
+            
+            pre.style.position = 'relative';
+            pre.appendChild(button);
+        });
+        });
+        
         // Add click handlers for collapsible sections
         document.addEventListener('DOMContentLoaded', function() {
             // Auto-expand critical and security issues

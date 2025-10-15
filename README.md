@@ -37,12 +37,30 @@ smart_coverage --version
 
 ## 📖 Commands Overview
 
+### `init` - Generate Configuration File
+
+Quickly generate a `smart_coverage.yaml` configuration file for your project.
+
+```sh
+smart_coverage init
+```
+
+This creates a configuration file with sensible defaults, making it easy to customize settings for your project.
+
 ### `analyze` - Coverage Analysis
 
-Analyze test coverage for your Flutter/Dart project with intelligent file detection and optional AI insights.
+Analyze test coverage for your Flutter/Dart project with intelligent file detection and optional test insights.
 
 ```sh
 smart_coverage analyze [options]
+```
+
+### `setup` - Interactive Setup
+
+Interactive setup wizard for more advanced configuration.
+
+```sh
+smart_coverage setup
 ```
 
 ### `update` - CLI Updates
@@ -59,9 +77,85 @@ smart_coverage update
 - `--verbose`: Enable verbose logging with detailed output
 - `--help`: Show usage help
 
+## 🚀 Quick Start
+
+The fastest way to get started with smart_coverage:
+
+```sh
+# 1. Generate configuration file
+smart_coverage init
+
+# 2. Customize the generated smart_coverage.yaml file (optional)
+
+# 3. Run analysis
+smart_coverage analyze
+```
+
+That's it! The `init` command creates a configuration file with all common options pre-configured.
+
+## 🔧 Init Command - Detailed Usage
+
+The `init` command generates a `smart_coverage.yaml` configuration file with sensible defaults.
+
+### Basic Usage
+
+```sh
+# Generate configuration with default settings
+smart_coverage init
+
+# Generate minimal configuration
+smart_coverage init --minimal
+
+# Include AI configuration
+smart_coverage init --with-ai
+
+# Use custom output path
+smart_coverage init --output my-config.yaml
+
+# Overwrite existing configuration
+smart_coverage init --force
+```
+
+### Command Options
+
+- `--output, -o <file>`: Output path for the configuration file (default: `smart_coverage.yaml`)
+- `--base-branch, -b <branch>`: Default base branch for git comparisons (default: `origin/main`)
+- `--with-ai`: Include AI configuration section in the generated file
+- `--minimal, -m`: Generate minimal configuration with only essential options
+- `--force, -f`: Overwrite existing configuration file if it exists
+
+### Examples
+
+```sh
+# Generate full configuration with AI settings
+smart_coverage init --with-ai --base-branch origin/develop
+
+# Generate minimal config for quick setup
+smart_coverage init --minimal
+
+# Generate config in a custom location
+smart_coverage init --output config/coverage.yaml
+
+# Overwrite existing config
+smart_coverage init --force
+```
+
+### What Gets Generated?
+
+The `init` command creates a YAML file with:
+- **Essential settings**: Base branch, output directory, output formats
+- **Feature flags**: Test insights, code review, performance profiling
+- **Comments and tips**: Helpful explanations for each option
+- **AI configuration** (when `--with-ai` is used): Ready-to-use AI service settings
+
+After running `init`, you can:
+1. Review the generated file and customize as needed
+2. Simply run `smart_coverage analyze` without any additional flags
+3. All settings from the config file will be automatically applied
+
 ## 🔍 Analyze Command - Detailed Usage
 
-The `analyze` command is the core functionality of smart_coverage, providing intelligent coverage analysis with git integration and AI insights.
+The `analyze` command is the core functionality of smart_coverage, providing intelligent coverage analysis with git integration and test insights.
 
 ### Basic Usage
 
@@ -90,7 +184,7 @@ smart_coverage analyze --skip-tests --lcov-file coverage/lcov.info
   - Example: `--package-path ./packages/core`
   - **Tip**: Use absolute paths for packages outside current directory
 
-- `--output-dir, -o <directory>`: **Output directory for generated reports** (default: `coverage_reports`)
+- `--output-dir, -o <directory>`: **Output directory for generated reports** (default: `coverage/smart_coverage`)
   - Example: `--output-dir ./build/coverage`
   - **Tip**: Directory will be created automatically if it doesn't exist
 
@@ -117,6 +211,13 @@ smart_coverage analyze --skip-tests --lcov-file coverage/lcov.info
 - `--code-review`: **Generate AI-powered code review**
   - **Features**: Creates detailed code review based on coverage data
   - **Tip**: Best used with `--test-insights` flag for comprehensive analysis
+
+#### Performance Optimization
+
+- `--profile`: **Enable performance profiling and optimization**
+  - **Features**: Monitors operation duration, memory usage, and provides optimization recommendations
+  - **Benefits**: Identifies bottlenecks in large codebases and suggests performance improvements
+  - **Tip**: Use with `--verbose` to export detailed performance reports
 
 #### Output and Formatting
 
@@ -153,7 +254,7 @@ smart_coverage analyze \
   --code-review \
   --output-formats console,html,json
 
-# Quick AI insights on existing coverage
+# Quick test insights on existing coverage
 smart_coverage analyze \
   --skip-tests \
   --test-insights \
@@ -186,17 +287,41 @@ smart_coverage analyze \
   --base-branch origin/develop
 ```
 
-### 🛠️ Configuration File
+#### Performance Profiling for Large Codebases
+
+```sh
+# Enable performance monitoring
+smart_coverage analyze \
+  --base-branch origin/main \
+  --profile
+
+# Detailed performance analysis with export
+smart_coverage analyze \
+  --base-branch origin/main \
+  --profile \
+  --verbose \
+  --output-formats console,html
+
+# Profile large projects with optimization recommendations
+smart_coverage analyze \
+  --package-path ./large_project \
+  --base-branch main \
+  --profile \
+  --skip-tests
+```
+
+## 🛠️ Configuration File
 
 Create a `smart_coverage.yaml` file for consistent settings:
 
 ```yaml
 package_path: "."
 base_branch: "origin/main"
-output_dir: "coverage_reports"
+output_dir: "coverage/smart_coverage"
 skip_tests: false
 test_insights: true
 code_review: true
+profile: false  # Enable performance profiling
 dark_mode: true
 output_formats:
   - "console"
@@ -207,7 +332,7 @@ ai_config:
   model: "gemini-pro"
 ```
 
-### 💡 Pro Tips
+## 💡 Pro Tips
 
 1. **Git Branch Issues**: Use `origin/main` instead of `main` if you get "unknown revision" errors
 2. **Performance**: Use `--skip-tests` when you have fresh coverage data to speed up analysis
@@ -215,6 +340,8 @@ ai_config:
 4. **Large Projects**: Consider analyzing specific packages with `--package-path`
 5. **AI Features**: Ensure proper AI service configuration before using `--test-insights` or `--code-review`
 6. **Report Viewing**: HTML reports provide the most detailed and visual coverage analysis
+7. **Performance Profiling**: Use `--profile` for large codebases (1000+ files) to get optimization recommendations
+8. **Memory Optimization**: Performance profiling helps identify memory bottlenecks and suggests batch processing improvements
 
 ## 🧪 Generating Coverage Data
 
@@ -313,7 +440,7 @@ smart_coverage analyze --base-branch origin/main
 
 #### AI Features Not Working
 
-**Problem**: AI insights or code review not generating.
+**Problem**: Test insights or code review not generating.
 
 **Solutions**:
 1. Check API key configuration:

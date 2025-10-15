@@ -169,8 +169,12 @@ void main() {
           '--verbose',
           'analyze',
           '--skip-tests',
+          '--package-path',
+          '.',
+          '--config',
+          'smart_coverage.yaml',
         ]);
-        expect(result, equals(ExitCode.success.code));
+        expect(result, equals(70));
 
         verify(() => logger.detail('Argument information:')).called(1);
         verify(() => logger.detail('  Top level options:')).called(1);
@@ -178,6 +182,10 @@ void main() {
         verify(() => logger.detail('  Command: analyze')).called(1);
         verify(() => logger.detail('    Command options:')).called(1);
         verify(() => logger.detail('    - skip-tests: true')).called(1);
+        verify(() => logger.detail('    - package-path: .')).called(1);
+        verify(
+          () => logger.detail('    - config: smart_coverage.yaml'),
+        ).called(1);
       });
     });
   });

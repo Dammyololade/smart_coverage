@@ -1,0 +1,45 @@
+# Smart Coverage Configuration
+# This file configures how Smart Coverage analyzes your project
+
+# Package settings
+packagePath: .                    # Path to your Dart/Flutter project
+baseBranch: main                  # Git branch to compare against for modified files
+
+# Output settings
+outputDir: coverage/smart_coverage # Directory for generated reports
+outputFormats:                    # Report formats to generate
+  - console                       # Console output (always recommended)
+  - html                          # Interactive HTML report
+  - json                          # JSON data for CI/CD integration
+  # - lcov                        # LCOV format for external tools
+
+# Test settings
+skipTests: false                  # Skip running tests (use existing coverage)
+
+# AI-powered features
+testInsights: false               # Generate test insights for test improvements
+codeReview: false                 # Generate AI code review suggestions
+
+# UI settings
+darkMode: false                   # Use dark theme for HTML reports
+
+# AI Configuration (required if testInsights or codeReview is enabled)
+aiConfig:
+  provider: gemini                # AI provider: gemini, openai, claude, local
+  providerType: auto              # Provider type: api, local, auto
+  # apiKeyEnv: GEMINI_API_KEY     # Environment variable for API key
+  # model: gemini-pro             # Specific model to use
+  timeout: 30                     # API timeout in seconds
+  cliCommand: gemini              # CLI command for local providers
+  cliArgs: []                     # Additional CLI arguments
+  cliTimeout: 60                  # CLI timeout in seconds
+  fallbackEnabled: true           # Enable fallback to other providers
+  fallbackOrder:                  # Fallback order
+    - local
+    - api
+  
+  # Response caching settings
+  cache:
+    enabled: true                 # Enable response caching to avoid repeated API calls
+    directory: .cache             # Cache directory (relative to project root)
+    # expiration: 24h             # Cache expiration time (optional)

@@ -52,12 +52,67 @@ class LcovParserImpl implements LcovParser {
 
   @override
   CoverageData filterByFiles(CoverageData data, List<String> filePaths) {
+    if (filePaths.isEmpty) {
+      print('⚠️  No files to filter - returning empty coverage data');
+      return CoverageData(
+        files: [],
+        summary: CoverageSummary(
+          linesFound: 0,
+          linesHit: 0,
+          functionsFound: 0,
+          functionsHit: 0,
+          branchesFound: 0,
+          branchesHit: 0,
+        ),
+      );
+    }
+
+    print('🔍 Filtering coverage data:');
+    print('   Total files in LCOV: ${data.files.length}');
+    print('   Modified files to match: ${filePaths.length}');
+
     final fileSet = filePaths.toSet();
     final filteredFiles = data.files.where((file) {
-      return fileSet.any(
-        (path) => file.path.endsWith(path) || file.path.contains(path),
-      );
+      // Normalize the file path from LCOV (remove leading ./ or /)
+      final normalizedLcovPath = file.path
+          .replaceAll(r'\', '/')
+          .replaceFirst(RegExp(r'^\.?/'), '');
+
+      // Check if any of the modified file paths match
+      final matches = fileSet.any((modifiedPath) {
+        final normalizedModified = modifiedPath
+            .replaceAll(r'\', '/')
+            .replaceFirst(RegExp(r'^\.?/'), '');
+
+        // Try exact match first
+        if (normalizedLcovPath == normalizedModified) return true;
+
+        // Try if LCOV path ends with modified path
+        if (normalizedLcovPath.endsWith(normalizedModified)) return true;
+
+        // Try if modified path ends with LCOV path
+        if (normalizedModified.endsWith(normalizedLcovPath)) return true;
+
+        // Try if they share the same filename
+        final lcovFilename = normalizedLcovPath.split('/').last;
+        final modifiedFilename = normalizedModified.split('/').last;
+        if (lcovFilename == modifiedFilename &&
+            normalizedLcovPath.contains(normalizedModified.replaceFirst('lib/', ''))) {
+          return true;
+        }
+
+        return false;
+      });
+
+      return matches;
     }).toList();
+
+    print('   Matched files: ${filteredFiles.length}');
+    if (filteredFiles.isEmpty && filePaths.isNotEmpty) {
+      print('⚠️  No matches found! Sample paths:');
+      print('   Modified file example: ${filePaths.first}');
+      print('   LCOV file example: ${data.files.isNotEmpty ? data.files.first.path : "none"}');
+    }
 
     return CoverageData(
       files: filteredFiles,
