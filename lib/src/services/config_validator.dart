@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:mason_logger/mason_logger.dart';
 import 'package:smart_coverage/src/models/smart_coverage_config.dart';
+import 'package:smart_coverage/src/services/git_service.dart';
 
 /// {@template config_validation_error}
 /// Represents a configuration validation error with helpful suggestions
@@ -419,9 +420,11 @@ aiConfig:
       return;
     }
 
-    // Check if we're in a Git repository
-    final gitDir = Directory('.git');
-    if (!await gitDir.exists()) {
+    // Check if we're in a Git repository (supports monorepos)
+    final gitService = GitServiceImpl();
+    final isInGitRepo = await gitService.isInGitRepository();
+
+    if (!isInGitRepo) {
       suggestions.add(
         ConfigValidationError(
           field: 'baseBranch',
@@ -435,13 +438,16 @@ aiConfig:
       return;
     }
 
+    // Get the Git repository root for running git commands
+    final gitRoot = await gitService.getGitRepositoryRoot();
+
     // Check if branch exists (basic check)
     try {
-      final result = await Process.run('git', [
-        'rev-parse',
-        '--verify',
-        baseBranch,
-      ]);
+      final result = await Process.run(
+        'git',
+        ['rev-parse', '--verify', baseBranch],
+        workingDirectory: gitRoot,
+      );
       if (result.exitCode != 0) {
         warnings.add(
           ConfigValidationError(

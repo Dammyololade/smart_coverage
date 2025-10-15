@@ -113,7 +113,8 @@ class ConfigServiceImpl implements ConfigService {
       final yamlDoc = loadYaml(content);
 
       if (yamlDoc is Map) {
-        return Map<String, dynamic>.from(yamlDoc);
+        // Normalize keys from snake_case to camelCase
+        return _normalizeKeys(Map<String, dynamic>.from(yamlDoc));
       }
 
       return null;
@@ -122,6 +123,34 @@ class ConfigServiceImpl implements ConfigService {
         'Invalid YAML configuration file: $filePath. Error: $e',
       );
     }
+  }
+
+  /// Normalize YAML keys from snake_case to camelCase
+  Map<String, dynamic> _normalizeKeys(Map<String, dynamic> map) {
+    final normalized = <String, dynamic>{};
+
+    for (final entry in map.entries) {
+      final normalizedKey = _snakeToCamel(entry.key);
+
+      if (entry.value is Map) {
+        normalized[normalizedKey] = _normalizeKeys(
+          Map<String, dynamic>.from(entry.value as Map),
+        );
+      } else {
+        normalized[normalizedKey] = entry.value;
+      }
+    }
+
+    return normalized;
+  }
+
+  /// Convert snake_case to camelCase
+  String _snakeToCamel(String snake) {
+    final parts = snake.split('_');
+    if (parts.length == 1) return snake;
+
+    return parts.first +
+        parts.skip(1).map((part) => part.isEmpty ? '' : part[0].toUpperCase() + part.substring(1)).join();
   }
 
   @override
@@ -170,7 +199,7 @@ class ConfigServiceImpl implements ConfigService {
       'testInsights': false,
       'codeReview': false,
       'darkMode': false,
-      'outputFormats': ['console'],
+      'outputFormats': ['console', 'html'],
       'aiConfig': {
         'provider': 'gemini',
         'providerType': 'auto',
@@ -216,14 +245,12 @@ class ConfigServiceImpl implements ConfigService {
   /// Convert configuration map to SmartCoverageConfig object
   SmartCoverageConfig _mapToConfig(Map<String, dynamic> config) {
     final aiConfigMap = config['aiConfig'] as Map<String, dynamic>? ?? {};
-    
+
     final packagePath = config['packagePath'] as String? ?? '.';
     final outputDirRaw = config['outputDir'] as String? ?? 'coverage/smart_coverage';
-    
+
     // Resolve output directory relative to package path if it's a relative path
-    final outputDir = path.isAbsolute(outputDirRaw) 
-        ? outputDirRaw 
-        : path.join(packagePath, outputDirRaw);
+    final outputDir = path.isAbsolute(outputDirRaw) ? outputDirRaw : path.join(packagePath, outputDirRaw);
 
     return SmartCoverageConfig(
       packagePath: packagePath,
@@ -245,8 +272,7 @@ class ConfigServiceImpl implements ConfigService {
         cliArgs: _parseStringList(aiConfigMap['cliArgs']) ?? [],
         cliTimeout: aiConfigMap['cliTimeout'] as int? ?? 60,
         fallbackEnabled: aiConfigMap['fallbackEnabled'] as bool? ?? true,
-        fallbackOrder:
-            _parseStringList(aiConfigMap['fallbackOrder']) ?? ['local', 'api'],
+        fallbackOrder: _parseStringList(aiConfigMap['fallbackOrder']) ?? ['local', 'api'],
         cacheEnabled: (aiConfigMap['cache'] as Map<String, dynamic>?)?['enabled'] as bool? ?? true,
         cacheDirectory: (aiConfigMap['cache'] as Map<String, dynamic>?)?['directory'] as String? ?? '.smart_coverage_cache',
         cacheExpirationHours: (aiConfigMap['cache'] as Map<String, dynamic>?)?['expirationHours'] as int?,

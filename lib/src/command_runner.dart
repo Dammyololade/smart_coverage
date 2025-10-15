@@ -39,6 +39,7 @@ class SmartCoverageCommandRunner extends CompletionCommandRunner<int> {
 
     // Add sub commands
     addCommand(AnalyzeCommand(logger: _logger));
+    addCommand(InitCommand(logger: _logger));
     addCommand(SetupCommand(logger: _logger));
     addCommand(UpdateCommand(logger: _logger, pubUpdater: _pubUpdater));
   }

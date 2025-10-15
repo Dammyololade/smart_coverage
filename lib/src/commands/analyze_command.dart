@@ -111,7 +111,6 @@ class AnalyzeCommand extends Command<int> {
         'output-formats',
         help: 'Output formats to generate.',
         allowed: ['console', 'html', 'json', 'lcov'],
-        defaultsTo: ['console'],
       );
   }
 
