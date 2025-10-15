@@ -442,11 +442,11 @@ class AnalyzeCommand extends Command<int> {
         final insightsProgress = _debugService.startProgress(
           '🧠 Generating test insights...',
         );
-        
+
         try {
           final insights = await aiService.generateInsights(coverageData);
           insightsProgress.complete('✅ Test insights generated');
-          
+
           // Only output to console if console format is enabled
           if (config.outputFormats.contains('console')) {
             _logger.info('\n📊 Test Insights:');
@@ -458,7 +458,9 @@ class AnalyzeCommand extends Command<int> {
             final htmlPath = path.join(config.outputDir, 'test_insights.html');
             try {
               await aiService.generateInsightsHtml(coverageData, htmlPath);
-              _logger.success('📄 Test insights HTML report generated: $htmlPath');
+              _logger.success(
+                '📄 Test insights HTML report generated: $htmlPath',
+              );
             } catch (e) {
               _logger.warn('⚠️  Failed to generate test insights HTML: $e');
             }
@@ -474,7 +476,7 @@ class AnalyzeCommand extends Command<int> {
         final reviewProgress = _debugService.startProgress(
           '🔍 Generating code review...',
         );
-        
+
         try {
           final modifiedFiles = coverageData.files.map((f) => f.path).toList();
           final codeReview = await aiService.generateCodeReview(
@@ -482,7 +484,7 @@ class AnalyzeCommand extends Command<int> {
             modifiedFiles,
           );
           reviewProgress.complete('✅ Code review generated');
-          
+
           // Only output to console if console format is enabled
           if (config.outputFormats.contains('console')) {
             _logger.info('\n🔍 Code Review:');
@@ -498,7 +500,9 @@ class AnalyzeCommand extends Command<int> {
                 modifiedFiles,
                 htmlPath,
               );
-              _logger.success('📄 Code review HTML report generated: $htmlPath');
+              _logger.success(
+                '📄 Code review HTML report generated: $htmlPath',
+              );
             } catch (e) {
               _logger.warn('⚠️  Failed to generate code review HTML: $e');
             }
@@ -520,10 +524,10 @@ class AnalyzeCommand extends Command<int> {
     try {
       // Get verbose flag from command line arguments
       final isVerbose = argResults!['verbose'] as bool;
-      
+
       // Create AI config with verbose flag
       final verboseAiConfig = aiConfig.copyWith(verbose: isVerbose);
-      
+
       // For now, only support Gemini CLI
       if (aiConfig.provider.toLowerCase() == 'gemini') {
         return GeminiCliService(verboseAiConfig);

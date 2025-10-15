@@ -1,7 +1,7 @@
 name: smart_coverage
 description: A modern Dart CLI tool for intelligent coverage analysis with AI-powered insights for Flutter/Dart projects.
-version: 0.1.2
-publish_to: none
+version: 0.0.1
+homepage: "https://github.com/Dammyololade/smart_coverage"
 
 environment:
   sdk: ^3.8.0

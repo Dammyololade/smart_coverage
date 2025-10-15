@@ -491,6 +491,74 @@ genhtml coverage/lcov.info -o coverage/
 open coverage/index.html
 ```
 
+## 📊 Coverage Badge Automation
+
+The coverage badge in this README is automatically updated! Here's how:
+
+### Automated Options
+
+#### 1️⃣ GitHub Actions (Recommended for Teams)
+The badge auto-updates on every push to `main`:
+- ✅ Runs tests automatically
+- 📊 Calculates coverage percentage  
+- 🎨 Updates badge with color-coding
+- 💬 Comments coverage on PRs
+
+**Setup:** Already configured! Just push to GitHub.
+
+#### 2️⃣ Local Scripts (For Development)
+
+**Quick update with Makefile:**
+```sh
+make badge          # Update badge (recommended)
+make html-report    # Generate and open HTML report
+make coverage-summary  # Show quick coverage stats
+```
+
+**Or use individual scripts:**
+```sh
+# Dart script (cross-platform)
+dart run tool/update_coverage_badge.dart
+
+
+#### 3️⃣ Git Pre-Commit Hook (Automatic Local Updates)
+Install once, badge updates automatically on every commit:
+```sh
+make install-hooks
+# or
+cp tool/pre-commit .git/hooks/pre-commit
+```
+
+Now the badge updates automatically when you commit test/source changes!
+
+### Badge Color Scheme
+
+| Coverage | Color | Badge |
+|----------|-------|-------|
+| ≥90% | 🟢 Bright Green | Excellent |
+| ≥80% | 🟢 Green | Good |
+| ≥70% | 🟡 Yellow | Acceptable |
+| ≥60% | 🟠 Orange | Needs Improvement |
+| <60% | 🔴 Red | Poor |
+
+### Quick Reference
+
+```sh
+# See all available commands
+make help
+
+# Complete workflow
+make all            # Clean, test, analyze, and generate reports
+
+# Individual steps
+make test           # Run tests only
+make coverage       # Generate coverage data
+make badge          # Update badge
+make html-report    # Generate visual report
+```
+
+For detailed documentation, see [`tool/README.md`](tool/README.md).
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.

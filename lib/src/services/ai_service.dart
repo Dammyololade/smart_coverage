@@ -231,10 +231,10 @@ class GeminiCliService extends LocalAiService {
 
     // Load and process the template
     final htmlContent = await _generateHtmlFromTemplate(
-        'test_insights_template.html',
-        'Smart Coverage - Test Insights',
-        content,
-        outputPath,
+      'test_insights_template.html',
+      'Smart Coverage - Test Insights',
+      content,
+      outputPath,
     );
 
     return htmlContent;
@@ -408,11 +408,11 @@ class GeminiCliService extends LocalAiService {
     try {
       final cacheKey = _generateCacheKey(prompt);
       final cacheFile = File(_getCacheFilePath(cacheKey));
-      
+
       if (await cacheFile.exists()) {
         final cacheContent = await cacheFile.readAsString();
         final cacheData = jsonDecode(cacheContent) as Map<String, dynamic>;
-        
+
         // Check if cache is still valid (optional: add expiration logic here)
         return cacheData['response'] as String?;
       }
@@ -422,7 +422,7 @@ class GeminiCliService extends LocalAiService {
         print('Warning: Failed to load cached response: $e');
       }
     }
-    
+
     return null;
   }
 
@@ -433,16 +433,16 @@ class GeminiCliService extends LocalAiService {
     try {
       final cacheKey = _generateCacheKey(prompt);
       final cacheFile = File(_getCacheFilePath(cacheKey));
-      
+
       // Ensure cache directory exists
       await cacheFile.parent.create(recursive: true);
-      
+
       final cacheData = {
         'prompt_hash': cacheKey,
         'response': response,
         'timestamp': DateTime.now().toIso8601String(),
       };
-      
+
       await cacheFile.writeAsString(jsonEncode(cacheData));
     } catch (e) {
       // If cache saving fails, continue with normal execution
@@ -487,12 +487,12 @@ class GeminiCliService extends LocalAiService {
             .transform(utf8.decoder)
             .join()
             .timeout(Duration(seconds: config.cliTimeout));
-        
+
         final response = output.trim();
-        
+
         // Save response to cache
         await _saveCachedResponse(prompt, response);
-        
+
         return response;
       } else {
         final error = await process.stderr
@@ -509,17 +509,19 @@ class GeminiCliService extends LocalAiService {
   /// Build prompt for code review generation
   String _buildCodeReviewPrompt(CoverageData coverage, List<String> files) {
     final buffer = StringBuffer();
-    
+
     // Enhanced prompt for standardized, actionable feedback
     buffer.writeln(
       'You are an expert code reviewer. Analyze the provided codebase and generate a comprehensive, actionable code review report.',
     );
     buffer.writeln();
-    
+
     buffer.writeln('## Project Context');
     buffer.writeln('- **Total Lines of Code:** ${coverage.summary.linesFound}');
     buffer.writeln('- **Files Analyzed:** ${coverage.files.length}');
-    buffer.writeln('- **Coverage:** ${coverage.summary.linePercentage.toStringAsFixed(1)}%');
+    buffer.writeln(
+      '- **Coverage:** ${coverage.summary.linePercentage.toStringAsFixed(1)}%',
+    );
     buffer.writeln();
 
     if (files.isNotEmpty) {
@@ -531,58 +533,92 @@ class GeminiCliService extends LocalAiService {
     }
 
     buffer.writeln('## Review Guidelines');
-    buffer.writeln('Please structure your analysis using the following format with HTML-compatible sections:');
+    buffer.writeln(
+      'Please structure your analysis using the following format with HTML-compatible sections:',
+    );
     buffer.writeln();
-    
+
     buffer.writeln('### 🔍 **Code Quality Assessment**');
     buffer.writeln('- **Readability:** Rate and provide specific improvements');
-    buffer.writeln('- **Maintainability:** Identify complex areas needing simplification');
+    buffer.writeln(
+      '- **Maintainability:** Identify complex areas needing simplification',
+    );
     buffer.writeln('- **Structure:** Evaluate organization and modularity');
     buffer.writeln();
-    
+
     buffer.writeln('### 🏗️ **Architecture & Design Patterns**');
-    buffer.writeln('- **Design Patterns:** Identify used patterns and suggest improvements');
+    buffer.writeln(
+      '- **Design Patterns:** Identify used patterns and suggest improvements',
+    );
     buffer.writeln('- **SOLID Principles:** Evaluate adherence and violations');
-    buffer.writeln('- **Separation of Concerns:** Assess component responsibilities');
+    buffer.writeln(
+      '- **Separation of Concerns:** Assess component responsibilities',
+    );
     buffer.writeln();
-    
+
     buffer.writeln('### ⚡ **Performance Considerations**');
-    buffer.writeln('- **Optimization Opportunities:** Specific code sections to improve');
+    buffer.writeln(
+      '- **Optimization Opportunities:** Specific code sections to improve',
+    );
     buffer.writeln('- **Resource Usage:** Memory and CPU efficiency concerns');
-    buffer.writeln('- **Algorithmic Complexity:** Big O analysis where relevant');
+    buffer.writeln(
+      '- **Algorithmic Complexity:** Big O analysis where relevant',
+    );
     buffer.writeln();
-    
+
     buffer.writeln('### 🔒 **Security Analysis**');
     buffer.writeln('- **Vulnerabilities:** Identify potential security issues');
     buffer.writeln('- **Input Validation:** Check for proper sanitization');
     buffer.writeln('- **Error Handling:** Evaluate exception management');
     buffer.writeln();
-    
+
     buffer.writeln('### 📋 **Best Practices & Standards**');
-    buffer.writeln('- **Coding Standards:** Dart/Flutter conventions adherence');
-    buffer.writeln('- **Naming Conventions:** Variable, function, and class names');
+    buffer.writeln(
+      '- **Coding Standards:** Dart/Flutter conventions adherence',
+    );
+    buffer.writeln(
+      '- **Naming Conventions:** Variable, function, and class names',
+    );
     buffer.writeln('- **Code Comments:** Documentation quality and coverage');
     buffer.writeln();
-    
+
     buffer.writeln('### 🔧 **Refactoring Opportunities**');
     buffer.writeln('- **Technical Debt:** Prioritized list of improvements');
-    buffer.writeln('- **Code Duplication:** Identify and suggest consolidation');
+    buffer.writeln(
+      '- **Code Duplication:** Identify and suggest consolidation',
+    );
     buffer.writeln('- **Dead Code:** Unused variables, functions, or imports');
     buffer.writeln();
-    
+
     buffer.writeln('## Output Format Requirements');
-    buffer.writeln('1. **Use HTML-compatible markdown** for proper rendering in the styled template');
-    buffer.writeln('2. **Include code snippets** with proper syntax highlighting using ```dart blocks');
-    buffer.writeln('3. **Use proper indentation** (2 spaces for Dart) to mirror code editor appearance');
-    buffer.writeln('4. **Provide specific line references** when possible (e.g., "Line 45 in user_service.dart")');
-    buffer.writeln('5. **Use severity levels**: 🔴 Critical, 🟡 Warning, 🔵 Suggestion, ✅ Good Practice');
-    buffer.writeln('6. **Include actionable recommendations** with before/after code examples');
+    buffer.writeln(
+      '1. **Use HTML-compatible markdown** for proper rendering in the styled template',
+    );
+    buffer.writeln(
+      '2. **Include code snippets** with proper syntax highlighting using ```dart blocks',
+    );
+    buffer.writeln(
+      '3. **Use proper indentation** (2 spaces for Dart) to mirror code editor appearance',
+    );
+    buffer.writeln(
+      '4. **Provide specific line references** when possible (e.g., "Line 45 in user_service.dart")',
+    );
+    buffer.writeln(
+      '5. **Use severity levels**: 🔴 Critical, 🟡 Warning, 🔵 Suggestion, ✅ Good Practice',
+    );
+    buffer.writeln(
+      '6. **Include actionable recommendations** with before/after code examples',
+    );
     buffer.writeln('7. **Prioritize issues** by impact and effort required');
-    buffer.writeln('8. **Use enhanced code formatting** with proper syntax highlighting colors');
+    buffer.writeln(
+      '8. **Use enhanced code formatting** with proper syntax highlighting colors',
+    );
     buffer.writeln();
-    
+
     buffer.writeln('## Code Example Format');
-    buffer.writeln('When showing code improvements, use this enhanced structure for better visual presentation:');
+    buffer.writeln(
+      'When showing code improvements, use this enhanced structure for better visual presentation:',
+    );
     buffer.writeln();
     buffer.writeln('<div class="code-comparison">');
     buffer.writeln('<div class="code-before">');
@@ -615,19 +651,33 @@ class GeminiCliService extends LocalAiService {
     buffer.writeln('</div>');
     buffer.writeln('</div>');
     buffer.writeln();
-    buffer.writeln('**💡 Benefits:** Explain why this change improves the code quality, performance, or maintainability');
+    buffer.writeln(
+      '**💡 Benefits:** Explain why this change improves the code quality, performance, or maintainability',
+    );
     buffer.writeln();
-    
+
     buffer.writeln('## Code Formatting Best Practices');
-    buffer.writeln('- **Indentation:** Use exactly 2 spaces for each level of nesting');
-    buffer.writeln('- **Line Length:** Keep lines under 80 characters when possible');
-    buffer.writeln('- **Naming:** Use camelCase for variables/methods, PascalCase for classes');
-    buffer.writeln('- **Comments:** Include meaningful comments explaining complex logic');
+    buffer.writeln(
+      '- **Indentation:** Use exactly 2 spaces for each level of nesting',
+    );
+    buffer.writeln(
+      '- **Line Length:** Keep lines under 80 characters when possible',
+    );
+    buffer.writeln(
+      '- **Naming:** Use camelCase for variables/methods, PascalCase for classes',
+    );
+    buffer.writeln(
+      '- **Comments:** Include meaningful comments explaining complex logic',
+    );
     buffer.writeln('- **Imports:** Group and organize imports properly');
-    buffer.writeln('- **Spacing:** Use consistent spacing around operators and after commas');
+    buffer.writeln(
+      '- **Spacing:** Use consistent spacing around operators and after commas',
+    );
     buffer.writeln();
-    
-    buffer.writeln('Focus on implementation details and avoid test-related analysis. Provide concrete, actionable feedback that developers can immediately implement with properly formatted, editor-like code examples.');
+
+    buffer.writeln(
+      'Focus on implementation details and avoid test-related analysis. Provide concrete, actionable feedback that developers can immediately implement with properly formatted, editor-like code examples.',
+    );
 
     return buffer.toString();
   }
@@ -635,55 +685,85 @@ class GeminiCliService extends LocalAiService {
   /// Build prompt for insights generation
   String _buildInsightsPrompt(CoverageData coverage) {
     final buffer = StringBuffer();
-    
+
     // Enhanced prompt for comprehensive test insights
     buffer.writeln(
       'You are a testing expert and coverage analyst. Analyze the provided coverage data and generate actionable insights for improving test coverage and quality.',
     );
     buffer.writeln();
-    
+
     buffer.writeln('## Coverage Overview');
     buffer.writeln('- **Total Lines:** ${coverage.summary.linesFound}');
     buffer.writeln('- **Covered Lines:** ${coverage.summary.linesHit}');
-    buffer.writeln('- **Uncovered Lines:** ${coverage.summary.linesFound - coverage.summary.linesHit}');
-    buffer.writeln('- **Coverage Percentage:** ${coverage.summary.linePercentage.toStringAsFixed(2)}%');
+    buffer.writeln(
+      '- **Uncovered Lines:** ${coverage.summary.linesFound - coverage.summary.linesHit}',
+    );
+    buffer.writeln(
+      '- **Coverage Percentage:** ${coverage.summary.linePercentage.toStringAsFixed(2)}%',
+    );
     buffer.writeln();
 
     if (coverage.files.isNotEmpty) {
       buffer.writeln('## File-by-File Coverage Analysis');
-      
+
       // Sort files by coverage percentage for better insights
       final sortedFiles = coverage.files.toList()
-        ..sort((a, b) => a.summary.linePercentage.compareTo(b.summary.linePercentage));
-      
+        ..sort(
+          (a, b) =>
+              a.summary.linePercentage.compareTo(b.summary.linePercentage),
+        );
+
       buffer.writeln('### 📊 **Coverage Distribution**');
       for (final file in sortedFiles) {
         final percentage = file.summary.linePercentage.toStringAsFixed(1);
-        final coverageStatus = file.summary.linePercentage >= 80 ? '✅' : 
-                               file.summary.linePercentage >= 60 ? '🟡' : '🔴';
-        buffer.writeln('- $coverageStatus `${file.path}`: **$percentage%** (${file.summary.linesHit}/${file.summary.linesFound})');
+        final coverageStatus = file.summary.linePercentage >= 80
+            ? '✅'
+            : file.summary.linePercentage >= 60
+            ? '🟡'
+            : '🔴';
+        buffer.writeln(
+          '- $coverageStatus `${file.path}`: **$percentage%** (${file.summary.linesHit}/${file.summary.linesFound})',
+        );
       }
       buffer.writeln();
     }
 
     buffer.writeln('## Analysis Framework');
-    buffer.writeln('Please provide a comprehensive analysis using the following structured format with enhanced visual presentation:');
+    buffer.writeln(
+      'Please provide a comprehensive analysis using the following structured format with enhanced visual presentation:',
+    );
     buffer.writeln();
-    
+
     buffer.writeln('### 🎯 **Coverage Assessment**');
-    buffer.writeln('- **Overall Health:** Rate the current coverage state (Excellent/Good/Fair/Poor)');
-    buffer.writeln('- **Coverage Trends:** Identify patterns in well-covered vs poorly-covered files');
-    buffer.writeln('- **Critical Gaps:** Highlight files with <50% coverage that need immediate attention');
-    buffer.writeln('- **Coverage Distribution:** Analyze if coverage is evenly distributed or concentrated');
+    buffer.writeln(
+      '- **Overall Health:** Rate the current coverage state (Excellent/Good/Fair/Poor)',
+    );
+    buffer.writeln(
+      '- **Coverage Trends:** Identify patterns in well-covered vs poorly-covered files',
+    );
+    buffer.writeln(
+      '- **Critical Gaps:** Highlight files with <50% coverage that need immediate attention',
+    );
+    buffer.writeln(
+      '- **Coverage Distribution:** Analyze if coverage is evenly distributed or concentrated',
+    );
     buffer.writeln();
-    
+
     buffer.writeln('### 📈 **Pattern Analysis**');
-    buffer.writeln('- **High Coverage Files:** What makes these files well-tested?');
-    buffer.writeln('- **Low Coverage Files:** Common characteristics of under-tested files');
-    buffer.writeln('- **File Type Patterns:** Coverage differences between services, models, utilities, etc.');
-    buffer.writeln('- **Complexity Correlation:** Relationship between file complexity and coverage');
+    buffer.writeln(
+      '- **High Coverage Files:** What makes these files well-tested?',
+    );
+    buffer.writeln(
+      '- **Low Coverage Files:** Common characteristics of under-tested files',
+    );
+    buffer.writeln(
+      '- **File Type Patterns:** Coverage differences between services, models, utilities, etc.',
+    );
+    buffer.writeln(
+      '- **Complexity Correlation:** Relationship between file complexity and coverage',
+    );
     buffer.writeln();
-    
+
     buffer.writeln('### 🎯 **Priority Recommendations**');
     buffer.writeln('Provide actionable recommendations in priority order:');
     buffer.writeln();
@@ -702,15 +782,23 @@ class GeminiCliService extends LocalAiService {
     buffer.writeln('- Performance testing and stress scenarios');
     buffer.writeln('- Documentation and example improvements');
     buffer.writeln();
-    
+
     buffer.writeln('### 🧪 **Testing Strategy Recommendations**');
-    buffer.writeln('- **Unit Tests:** Specific areas needing more unit test coverage');
-    buffer.writeln('- **Integration Tests:** Components requiring integration testing');
-    buffer.writeln('- **Edge Cases:** Uncommon scenarios that should be tested');
+    buffer.writeln(
+      '- **Unit Tests:** Specific areas needing more unit test coverage',
+    );
+    buffer.writeln(
+      '- **Integration Tests:** Components requiring integration testing',
+    );
+    buffer.writeln(
+      '- **Edge Cases:** Uncommon scenarios that should be tested',
+    );
     buffer.writeln('- **Error Handling:** Exception paths that need coverage');
-    buffer.writeln('- **Mocking Strategy:** Dependencies that should be mocked for better testing');
+    buffer.writeln(
+      '- **Mocking Strategy:** Dependencies that should be mocked for better testing',
+    );
     buffer.writeln();
-    
+
     buffer.writeln('### 📋 **Actionable Next Steps**');
     buffer.writeln('Provide specific, implementable actions:');
     buffer.writeln();
@@ -726,25 +814,47 @@ class GeminiCliService extends LocalAiService {
     buffer.writeln('   - Overall testing architecture improvements');
     buffer.writeln('   - Continuous integration testing enhancements');
     buffer.writeln();
-    
+
     buffer.writeln('### 🎖️ **Quality Metrics & Goals**');
-    buffer.writeln('- **Current Quality Score:** Based on coverage distribution and patterns');
-    buffer.writeln('- **Recommended Target:** Realistic coverage goals for this project');
-    buffer.writeln('- **Success Metrics:** How to measure testing improvement progress');
-    buffer.writeln('- **Maintenance Strategy:** Keeping coverage high as code evolves');
+    buffer.writeln(
+      '- **Current Quality Score:** Based on coverage distribution and patterns',
+    );
+    buffer.writeln(
+      '- **Recommended Target:** Realistic coverage goals for this project',
+    );
+    buffer.writeln(
+      '- **Success Metrics:** How to measure testing improvement progress',
+    );
+    buffer.writeln(
+      '- **Maintenance Strategy:** Keeping coverage high as code evolves',
+    );
     buffer.writeln();
-    
+
     buffer.writeln('## Output Format Requirements');
-    buffer.writeln('1. **Use HTML-compatible markdown** with proper headings and enhanced formatting');
-    buffer.writeln('2. **Include specific file references** with backticks for code files');
-    buffer.writeln('3. **Use visual indicators**: ✅ Good, 🟡 Needs Attention, 🔴 Critical');
-    buffer.writeln('4. **Provide concrete examples** of test cases to write with proper Dart formatting');
+    buffer.writeln(
+      '1. **Use HTML-compatible markdown** with proper headings and enhanced formatting',
+    );
+    buffer.writeln(
+      '2. **Include specific file references** with backticks for code files',
+    );
+    buffer.writeln(
+      '3. **Use visual indicators**: ✅ Good, 🟡 Needs Attention, 🔴 Critical',
+    );
+    buffer.writeln(
+      '4. **Provide concrete examples** of test cases to write with proper Dart formatting',
+    );
     buffer.writeln('5. **Include coverage targets** with realistic timelines');
-    buffer.writeln('6. **Focus on actionable insights** rather than general observations');
-    buffer.writeln('7. **Use enhanced code formatting** when showing test examples:');
+    buffer.writeln(
+      '6. **Focus on actionable insights** rather than general observations',
+    );
+    buffer.writeln(
+      '7. **Use enhanced code formatting** when showing test examples:',
+    );
     buffer.writeln();
     buffer.writeln('```dart');
-    buffer.writeln('// Example test structure with proper indentation (2 spaces)');
+    buffer.writeln(
+      '// Example test structure with proper indentation (2 spaces)',
+    );
     buffer.writeln('void main() {');
     buffer.writeln('  group(\'ClassName Tests\', () {');
     buffer.writeln('    test(\'should handle normal case\', () {');
@@ -761,8 +871,10 @@ class GeminiCliService extends LocalAiService {
     buffer.writeln('}');
     buffer.writeln('```');
     buffer.writeln();
-    
-    buffer.writeln('Generate insights that help developers understand not just what to test, but how to prioritize their testing efforts for maximum impact on code quality and reliability. Use the enhanced styling and formatting to create visually appealing, editor-like code examples.');
+
+    buffer.writeln(
+      'Generate insights that help developers understand not just what to test, but how to prioritize their testing efforts for maximum impact on code quality and reliability. Use the enhanced styling and formatting to create visually appealing, editor-like code examples.',
+    );
 
     return buffer.toString();
   }
