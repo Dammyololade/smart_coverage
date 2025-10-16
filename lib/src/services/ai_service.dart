@@ -607,7 +607,7 @@ class GeminiCliService extends LocalAiService {
       '5. **Use severity levels**: 🔴 Critical, 🟡 Warning, 🔵 Suggestion, ✅ Good Practice',
     );
     buffer.writeln(
-      '6. **Include actionable recommendations** with before/after code examples',
+      '6. **Include actionable recommendations** with before/after code example',
     );
     buffer.writeln('7. **Prioritize issues** by impact and effort required');
     buffer.writeln(
@@ -676,7 +676,7 @@ class GeminiCliService extends LocalAiService {
     buffer.writeln();
 
     buffer.writeln(
-      'Focus on implementation details and avoid test-related analysis. Provide concrete, actionable feedback that developers can immediately implement with properly formatted, editor-like code examples.',
+      'Focus on implementation details and avoid test-related analysis. Provide concrete, actionable feedback that developers can immediately implement with properly formatted, editor-like code example.',
     );
 
     return buffer.toString();
@@ -841,14 +841,14 @@ class GeminiCliService extends LocalAiService {
       '3. **Use visual indicators**: ✅ Good, 🟡 Needs Attention, 🔴 Critical',
     );
     buffer.writeln(
-      '4. **Provide concrete examples** of test cases to write with proper Dart formatting',
+      '4. **Provide concrete example** of test cases to write with proper Dart formatting',
     );
     buffer.writeln('5. **Include coverage targets** with realistic timelines');
     buffer.writeln(
       '6. **Focus on actionable insights** rather than general observations',
     );
     buffer.writeln(
-      '7. **Use enhanced code formatting** when showing test examples:',
+      '7. **Use enhanced code formatting** when showing test example:',
     );
     buffer.writeln();
     buffer.writeln('```dart');
@@ -873,7 +873,7 @@ class GeminiCliService extends LocalAiService {
     buffer.writeln();
 
     buffer.writeln(
-      'Generate insights that help developers understand not just what to test, but how to prioritize their testing efforts for maximum impact on code quality and reliability. Use the enhanced styling and formatting to create visually appealing, editor-like code examples.',
+      'Generate insights that help developers understand not just what to test, but how to prioritize their testing efforts for maximum impact on code quality and reliability. Use the enhanced styling and formatting to create visually appealing, editor-like code example.',
     );
 
     return buffer.toString();

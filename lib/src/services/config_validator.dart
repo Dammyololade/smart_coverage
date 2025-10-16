@@ -124,7 +124,7 @@ abstract class ConfigValidator {
   /// Validate and display results with colored output
   Future<bool> validateAndDisplay(SmartCoverageConfig config, Logger logger);
 
-  /// Generate configuration template with examples
+  /// Generate configuration template with example
   String generateConfigTemplate();
 
   /// Suggest fixes for common configuration issues
