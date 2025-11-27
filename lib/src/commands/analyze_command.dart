@@ -75,9 +75,21 @@ class AnalyzeCommand extends Command<int> {
         help: 'Skip running tests and use existing coverage data.',
         negatable: false,
       )
+      ..addOption(
+        'test-command',
+        abbr: 't',
+        help: 'Custom test command to run instead of auto-detected command. '
+            'Example: "flutter test --coverage" or "dart test --coverage=coverage"',
+      )
       ..addFlag(
         'test-insights',
         help: 'Enable AI-powered test insights generation.',
+        negatable: false,
+      )
+      ..addFlag(
+        'include-dependents',
+        help: 'Include files that depend on modified files in the analysis. '
+            'Shows coverage for both modified files and their dependents.',
         negatable: false,
       )
       ..addFlag(
@@ -216,7 +228,7 @@ class AnalyzeCommand extends Command<int> {
       if (!config.skipTests) {
         final testProgress = _debugService.startProgress('Running tests...');
         final testStopwatch = Stopwatch()..start();
-        await _runTests(config.packagePath, lcovFile);
+        await _runTests(config.packagePath, lcovFile, config.testCommand);
         testStopwatch.stop();
         testProgress.complete('Tests completed');
 
@@ -409,6 +421,12 @@ class AnalyzeCommand extends Command<int> {
     if (argResults!.wasParsed('output-formats')) {
       cliArgs['outputFormats'] = argResults!['output-formats'];
     }
+    if (argResults!.wasParsed('test-command')) {
+      cliArgs['testCommand'] = argResults!['test-command'];
+    }
+    if (argResults!.wasParsed('include-dependents')) {
+      cliArgs['includeDependents'] = argResults!['include-dependents'];
+    }
 
     return _configService.loadConfig(
       cliArgs: cliArgs,
@@ -542,7 +560,14 @@ class AnalyzeCommand extends Command<int> {
   }
 
   /// Run tests to generate coverage data
-  Future<void> _runTests(String packagePath, String lcovFile) async {
+  ///
+  /// If [customTestCommand] is provided, it will be used instead of the
+  /// auto-detected command. The custom command should include coverage flags.
+  Future<void> _runTests(
+    String packagePath,
+    String lcovFile,
+    String? customTestCommand,
+  ) async {
     _logger.info('🧪 Running tests to generate coverage data...');
 
     try {
@@ -552,28 +577,42 @@ class AnalyzeCommand extends Command<int> {
         await coverageDir.create(recursive: true);
       }
 
-      // Detect if this is a Flutter project
-      final pubspecFile = File(path.join(packagePath, 'pubspec.yaml'));
+      String testCommand;
+      List<String> testArgs;
       var isFlutterProject = false;
 
-      if (pubspecFile.existsSync()) {
-        final pubspecContent = await pubspecFile.readAsString();
-        isFlutterProject =
-            pubspecContent.contains('flutter:') ||
-            pubspecContent.contains('flutter_test:');
+      if (customTestCommand != null && customTestCommand.isNotEmpty) {
+        // Use custom test command
+        final parts = customTestCommand.split(' ');
+        testCommand = parts.first;
+        testArgs = parts.skip(1).toList();
+        _logger.info('Using custom test command: $customTestCommand');
+
+        // Check if it's a flutter command for later LCOV handling
+        isFlutterProject = testCommand == 'flutter';
+      } else {
+        // Detect if this is a Flutter project
+        final pubspecFile = File(path.join(packagePath, 'pubspec.yaml'));
+
+        if (pubspecFile.existsSync()) {
+          final pubspecContent = await pubspecFile.readAsString();
+          isFlutterProject =
+              pubspecContent.contains('flutter:') ||
+              pubspecContent.contains('flutter_test:');
+        }
+
+        // Use appropriate test command based on project type
+        testCommand = isFlutterProject ? 'flutter' : 'dart';
+        testArgs = isFlutterProject
+            ? ['test', '--coverage']
+            : ['test', '--coverage=coverage'];
+
+        _logger.info(
+          "Detected ${isFlutterProject ? "Flutter" : "Dart"} project, using $testCommand test",
+        );
       }
 
-      // Use appropriate test command based on project type
-      final testCommand = isFlutterProject ? 'flutter' : 'dart';
-      final testArgs = isFlutterProject
-          ? ['test', '--coverage']
-          : ['test', '--coverage=coverage'];
-
-      _logger.info(
-        "Detected ${isFlutterProject ? "Flutter" : "Dart"} project, using $testCommand test",
-      );
-
-      // Run dart test with coverage
+      // Run test command with coverage
       final testResult = await Process.run(
         testCommand,
         testArgs,
