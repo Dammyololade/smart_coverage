@@ -1,5 +1,6 @@
 import 'package:smart_coverage/src/models/coverage_data.dart';
 import 'package:smart_coverage/src/models/smart_coverage_config.dart';
+import 'package:smart_coverage/src/services/dependency_analyzer.dart';
 import 'package:smart_coverage/src/services/file_detector.dart';
 import 'package:smart_coverage/src/services/lcov_parser.dart';
 
@@ -35,13 +36,21 @@ class CoverageProcessorImpl implements CoverageProcessor {
   const CoverageProcessorImpl({
     required this.fileDetector,
     required this.lcovParser,
-  });
+    DependencyAnalyzer? dependencyAnalyzer,
+  }) : _dependencyAnalyzer = dependencyAnalyzer;
 
   /// File detector service for Git integration
   final FileDetector fileDetector;
 
   /// LCOV parser service for coverage data parsing
   final LcovParser lcovParser;
+
+  /// Dependency analyzer for finding dependent files
+  final DependencyAnalyzer? _dependencyAnalyzer;
+
+  /// Get dependency analyzer (creates default if not provided)
+  DependencyAnalyzer get dependencyAnalyzer =>
+      _dependencyAnalyzer ?? const DependencyAnalyzerImpl();
 
   @override
   Future<CoverageData> processModifiedFilesCoverage({
@@ -127,22 +136,66 @@ class CoverageProcessorImpl implements CoverageProcessor {
     }
 
     try {
-      // Try to process modified files only
-      final modifiedCoverage = await processModifiedFilesCoverage(
-        lcovPath: lcovPath,
-        baseBranch: config.baseBranch,
+      // Detect modified files
+      final modifiedFiles = await fileDetector.detectModifiedFiles(
+        config.baseBranch,
         packagePath: config.packagePath,
       );
 
-      // If no modified files found, fall back to processing all files
-      if (modifiedCoverage.files.isEmpty) {
+      if (modifiedFiles.isEmpty) {
+        // Fall back to processing all files
         return processAllFilesCoverage(
           lcovPath: lcovPath,
           packagePath: config.packagePath,
         );
       }
 
-      return modifiedCoverage;
+      // Get files to analyze (modified + dependents if enabled)
+      var filesToAnalyze = modifiedFiles;
+
+      if (config.includeDependents) {
+        print('🔗 Analyzing dependencies...');
+        final dependents = await dependencyAnalyzer.getDependentFiles(
+          modifiedFiles,
+          config.packagePath,
+        );
+
+        if (dependents.isNotEmpty) {
+          print('📁 Found ${dependents.length} dependent file(s):');
+          for (final dep in dependents.take(10)) {
+            print('   • $dep');
+          }
+          if (dependents.length > 10) {
+            print('   ... and ${dependents.length - 10} more');
+          }
+
+          // Combine modified files with their dependents
+          filesToAnalyze = {...modifiedFiles, ...dependents}.toList();
+          print(
+            '📊 Total files to analyze: ${filesToAnalyze.length} '
+            '(${modifiedFiles.length} modified + ${dependents.length} dependents)',
+          );
+        } else {
+          print('ℹ️  No dependent files found');
+        }
+      }
+
+      // Parse LCOV data and filter by files to analyze
+      final allCoverageData = await lcovParser.parseFile(lcovPath);
+      final coverageData = lcovParser.filterByFiles(
+        allCoverageData,
+        filesToAnalyze,
+      );
+
+      if (coverageData.files.isEmpty) {
+        // Fall back to processing all files if no coverage found
+        return processAllFilesCoverage(
+          lcovPath: lcovPath,
+          packagePath: config.packagePath,
+        );
+      }
+
+      return coverageData;
     } catch (e) {
       // If Git is not available or fails, fall back to processing all files
       if (e.toString().contains('Not a Git repository') ||

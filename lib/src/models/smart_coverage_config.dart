@@ -13,6 +13,8 @@ class SmartCoverageConfig {
     required this.darkMode,
     required this.outputFormats,
     required this.aiConfig,
+    this.testCommand,
+    this.includeDependents = false,
   });
 
   /// Path to the Flutter/Dart package
@@ -42,6 +44,15 @@ class SmartCoverageConfig {
   /// AI service configuration
   final AiConfig aiConfig;
 
+  /// Custom test command to run instead of the default
+  /// If null, auto-detects Flutter or Dart project and uses appropriate command
+  /// Example: "flutter test --coverage" or "dart test --coverage=coverage"
+  final String? testCommand;
+
+  /// Whether to include files that depend on modified files in the analysis
+  /// When true, analyzes not just modified files but also files that import them
+  final bool includeDependents;
+
   /// Creates a copy of this config with optional modifications
   SmartCoverageConfig copyWith({
     String? packagePath,
@@ -53,6 +64,8 @@ class SmartCoverageConfig {
     bool? darkMode,
     List<String>? outputFormats,
     AiConfig? aiConfig,
+    String? testCommand,
+    bool? includeDependents,
   }) {
     return SmartCoverageConfig(
       packagePath: packagePath ?? this.packagePath,
@@ -64,6 +77,8 @@ class SmartCoverageConfig {
       darkMode: darkMode ?? this.darkMode,
       outputFormats: outputFormats ?? this.outputFormats,
       aiConfig: aiConfig ?? this.aiConfig,
+      testCommand: testCommand ?? this.testCommand,
+      includeDependents: includeDependents ?? this.includeDependents,
     );
   }
 }

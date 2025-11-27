@@ -140,6 +140,10 @@ dark_mode: true
 
 # Skip running tests (use existing coverage data)
 skip_tests: false
+
+# Custom test command (optional)
+# If not specified, auto-detects Flutter or Dart and uses appropriate command
+# test_command: "flutter test --coverage"
 ''';
   }
 
@@ -238,6 +242,15 @@ dark_mode: true
 # Skip running tests and use existing coverage data
 # Set to true if you've already generated coverage
 skip_tests: false
+
+# Custom test command (optional)
+# If not specified, auto-detects Flutter or Dart and uses appropriate command
+# Examples:
+#   - "flutter test --coverage"
+#   - "dart test --coverage=coverage"
+#   - "very_good test --coverage --recursive"
+#   - "melos run test"
+# test_command: "flutter test --coverage"
 
 # Path to LCOV coverage file (relative to package_path)
 # lcov_file: "coverage/lcov.info"

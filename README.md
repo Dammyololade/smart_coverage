@@ -12,449 +12,138 @@ A modern Dart CLI tool for intelligent coverage analysis with AI-powered insight
 - **AI-Powered Insights**: Generate automated code reviews and coverage insights using AI services
 - **Git Integration**: Automatically detects modified files by comparing against base branches
 - **Multiple Output Formats**: Supports HTML, JSON, console, and LCOV report formats
-- **Configurable**: Flexible configuration options via YAML files or command-line arguments
-- **Modern CLI**: Built with best practices using Mason Logger and CLI completion
+- **Shell Completion**: Tab-completion support for commands and options
+- **Configurable**: Flexible configuration via YAML files or command-line arguments
 
 ## 📦 Installation
 
-### Global Installation (Recommended)
-
 ```sh
+# Install globally
 dart pub global activate smart_coverage
-```
 
-### Local Installation
-
-```sh
-dart pub global activate --source=path <path to this package>
-```
-
-### Verify Installation
-
-```sh
+# Verify installation
 smart_coverage --version
+
+# Enable shell tab-completion (recommended)
+smart_coverage completion-setup
 ```
-
-## 📖 Commands Overview
-
-### `init` - Generate Configuration File
-
-Quickly generate a `smart_coverage.yaml` configuration file for your project.
-
-```sh
-smart_coverage init
-```
-
-This creates a configuration file with sensible defaults, making it easy to customize settings for your project.
-
-### `analyze` - Coverage Analysis
-
-Analyze test coverage for your Flutter/Dart project with intelligent file detection and optional test insights.
-
-```sh
-smart_coverage analyze [options]
-```
-
-### `setup` - Interactive Setup
-
-Interactive setup wizard for more advanced configuration.
-
-```sh
-smart_coverage setup
-```
-
-### `update` - CLI Updates
-
-Update the smart_coverage CLI to the latest version.
-
-```sh
-smart_coverage update
-```
-
-### Global Options
-
-- `--version, -v`: Show the current version
-- `--verbose`: Enable verbose logging with detailed output
-- `--help`: Show usage help
 
 ## 🚀 Quick Start
-
-The fastest way to get started with smart_coverage:
 
 ```sh
 # 1. Generate configuration file
 smart_coverage init
 
-# 2. Customize the generated smart_coverage.yaml file (optional)
-
-# 3. Run analysis
+# 2. Run analysis
 smart_coverage analyze
 ```
 
-That's it! The `init` command creates a configuration file with all common options pre-configured.
+## 📖 Commands
 
-## 🔧 Init Command - Detailed Usage
+| Command | Description |
+|---------|-------------|
+| `analyze` | Analyze test coverage with optional AI insights |
+| `init` | Generate a configuration file |
+| `setup` | Interactive setup wizard |
+| `update` | Update the CLI to latest version |
+| `completion-setup` | Set up shell tab-completion |
 
-The `init` command generates a `smart_coverage.yaml` configuration file with sensible defaults.
-
-### Basic Usage
-
-```sh
-# Generate configuration with default settings
-smart_coverage init
-
-# Generate minimal configuration
-smart_coverage init --minimal
-
-# Include AI configuration
-smart_coverage init --with-ai
-
-# Use custom output path
-smart_coverage init --output my-config.yaml
-
-# Overwrite existing configuration
-smart_coverage init --force
-```
-
-### Command Options
-
-- `--output, -o <file>`: Output path for the configuration file (default: `smart_coverage.yaml`)
-- `--base-branch, -b <branch>`: Default base branch for git comparisons (default: `origin/main`)
-- `--with-ai`: Include AI configuration section in the generated file
-- `--minimal, -m`: Generate minimal configuration with only essential options
-- `--force, -f`: Overwrite existing configuration file if it exists
-
-### Examples
+## 🔍 Analyze Command
 
 ```sh
-# Generate full configuration with AI settings
-smart_coverage init --with-ai --base-branch origin/develop
-
-# Generate minimal config for quick setup
-smart_coverage init --minimal
-
-# Generate config in a custom location
-smart_coverage init --output config/coverage.yaml
-
-# Overwrite existing config
-smart_coverage init --force
-```
-
-### What Gets Generated?
-
-The `init` command creates a YAML file with:
-- **Essential settings**: Base branch, output directory, output formats
-- **Feature flags**: Test insights, code review, performance profiling
-- **Comments and tips**: Helpful explanations for each option
-- **AI configuration** (when `--with-ai` is used): Ready-to-use AI service settings
-
-After running `init`, you can:
-1. Review the generated file and customize as needed
-2. Simply run `smart_coverage analyze` without any additional flags
-3. All settings from the config file will be automatically applied
-
-## 🔍 Analyze Command - Detailed Usage
-
-The `analyze` command is the core functionality of smart_coverage, providing intelligent coverage analysis with git integration and test insights.
-
-### Basic Usage
-
-```sh
-# Analyze modified files compared to main branch
-smart_coverage analyze --base-branch main
-
-# Analyze specific package with custom output
-smart_coverage analyze --package-path ./my_project --output-dir ./reports
-
-# Quick analysis with existing coverage data
-smart_coverage analyze --skip-tests --lcov-file coverage/lcov.info
-```
-
-### Command Options
-
-#### Required Options
-
-- `--base-branch, -b <branch>`: **Base branch to compare against for detecting modified files**
-  - Example: `--base-branch main`, `--base-branch origin/develop`
-  - **Tip**: Use `origin/main` for remote branches to avoid "unknown revision" errors
-
-#### Path and File Options
-
-- `--package-path, -p <path>`: **Path to the Flutter/Dart package to analyze** (default: `.`)
-  - Example: `--package-path ./packages/core`
-  - **Tip**: Use absolute paths for packages outside current directory
-
-- `--output-dir, -o <directory>`: **Output directory for generated reports** (default: `coverage/smart_coverage`)
-  - Example: `--output-dir ./build/coverage`
-  - **Tip**: Directory will be created automatically if it doesn't exist
-
-- `--config, -c <file>`: **Path to configuration file**
-  - Example: `--config smart_coverage.yaml`
-  - **Tip**: Use config files for consistent team settings
-
-- `--lcov-file, -l <file>`: **Path to LCOV coverage file** (default: `coverage/lcov.info`)
-  - Example: `--lcov-file build/coverage/lcov.info`
-  - **Tip**: Ensure the file exists or use `--skip-tests` to generate it first
-
-#### Execution Control
-
-- `--skip-tests`: **Skip running tests and use existing coverage data**
-  - **Use case**: When you already have fresh coverage data
-  - **Tip**: Speeds up analysis significantly for large projects
-
-#### AI-Powered Features
-
-- `--test-insights`: **Enable AI-powered insights generation**
-  - **Features**: Generates intelligent analysis of coverage patterns
-  - **Tip**: Requires AI service configuration (see Configuration section)
-
-- `--code-review`: **Generate AI-powered code review**
-  - **Features**: Creates detailed code review based on coverage data
-  - **Tip**: Best used with `--test-insights` flag for comprehensive analysis
-
-#### Performance Optimization
-
-- `--profile`: **Enable performance profiling and optimization**
-  - **Features**: Monitors operation duration, memory usage, and provides optimization recommendations
-  - **Benefits**: Identifies bottlenecks in large codebases and suggests performance improvements
-  - **Tip**: Use with `--verbose` to export detailed performance reports
-
-#### Output and Formatting
-
-- `--output-formats <formats>`: **Output formats to generate** (default: `console`)
-  - **Available formats**: `console`, `html`, `json`, `lcov`
-  - **Examples**: 
-    - `--output-formats console,html` - Console + HTML reports
-    - `--output-formats json` - JSON only for CI integration
-    - `--output-formats html,json,lcov` - Multiple formats
-  - **Tip**: Use `html` for detailed visual reports, `json` for CI/CD integration
-
-- `--dark-mode`: **Use dark theme for HTML reports** (default: `true`)
-  - **Tip**: Use `--no-dark-mode` to disable dark theme
-
-### 🎯 Usage Examples
-
-#### Basic Coverage Analysis
-
-```sh
-# Analyze changes against main branch
+# Basic usage
 smart_coverage analyze --base-branch origin/main
 
-# Analyze with HTML report
+# With HTML report
 smart_coverage analyze --base-branch main --output-formats html
+
+# Include dependent files (files that import modified files)
+smart_coverage analyze --base-branch main --include-dependents
+
+# With AI insights
+smart_coverage analyze --base-branch main --test-insights --code-review
+
+# Skip tests (use existing coverage)
+smart_coverage analyze --skip-tests --lcov-file coverage/lcov.info
+
+# Custom test command
+smart_coverage analyze --test-command "flutter test --coverage"
+smart_coverage analyze --test-command "very_good test --coverage --recursive"
 ```
 
-#### Advanced Analysis with AI
+### Key Options
 
-```sh
-# Full AI-powered analysis
-smart_coverage analyze \
-  --base-branch origin/main \
-  --test-insights \
-  --code-review \
-  --output-formats console,html,json
+| Option | Description |
+|--------|-------------|
+| `-b, --base-branch` | Base branch to compare against (e.g., `origin/main`) |
+| `-p, --package-path` | Path to the package to analyze (default: `.`) |
+| `-o, --output-dir` | Output directory for reports (default: `coverage/smart_coverage`) |
+| `-t, --test-command` | Custom test command to run |
+| `--skip-tests` | Skip running tests, use existing coverage data |
+| `--include-dependents` | Include files that depend on modified files |
+| `--test-insights` | Enable AI-powered test insights |
+| `--code-review` | Generate AI-powered code review |
+| `--output-formats` | Output formats: `console`, `html`, `json`, `lcov` |
+| `--profile` | Enable performance profiling |
 
-# Quick test insights on existing coverage
-smart_coverage analyze \
-  --skip-tests \
-  --test-insights \
-  --lcov-file coverage/lcov.info
-```
+## 🛠️ Configuration
 
-#### CI/CD Integration
-
-```sh
-# Optimized for CI pipelines
-smart_coverage analyze \
-  --base-branch origin/main \
-  --output-formats json \
-  --output-dir ./coverage-reports \
-  --no-dark-mode
-```
-
-#### Multi-package Projects
-
-```sh
-# Analyze specific package
-smart_coverage analyze \
-  --package-path ./packages/core \
-  --base-branch main \
-  --output-dir ./reports/core
-
-# Using configuration file
-smart_coverage analyze \
-  --config ./tools/smart_coverage.yaml \
-  --base-branch origin/develop
-```
-
-#### Performance Profiling for Large Codebases
-
-```sh
-# Enable performance monitoring
-smart_coverage analyze \
-  --base-branch origin/main \
-  --profile
-
-# Detailed performance analysis with export
-smart_coverage analyze \
-  --base-branch origin/main \
-  --profile \
-  --verbose \
-  --output-formats console,html
-
-# Profile large projects with optimization recommendations
-smart_coverage analyze \
-  --package-path ./large_project \
-  --base-branch main \
-  --profile \
-  --skip-tests
-```
-
-## 🛠️ Configuration File
-
-Create a `smart_coverage.yaml` file for consistent settings:
+Create a `smart_coverage.yaml` file:
 
 ```yaml
 package_path: "."
 base_branch: "origin/main"
 output_dir: "coverage/smart_coverage"
 skip_tests: false
-test_insights: true
-code_review: true
-profile: false  # Enable performance profiling
 dark_mode: true
 output_formats:
-  - "console"
-  - "html"
-  - "json"
-ai_config:
-  provider: "gemini"
-  model: "gemini-pro"
-```
+  - console
+  - html
 
-## 💡 Pro Tips
+# Include files that depend on modified files
+# include_dependents: true
 
-1. **Git Branch Issues**: Use `origin/main` instead of `main` if you get "unknown revision" errors
-2. **Performance**: Use `--skip-tests` when you have fresh coverage data to speed up analysis
-3. **CI Integration**: Use `--output-formats json` for machine-readable output in CI/CD
-4. **Large Projects**: Consider analyzing specific packages with `--package-path`
-5. **AI Features**: Ensure proper AI service configuration before using `--test-insights` or `--code-review`
-6. **Report Viewing**: HTML reports provide the most detailed and visual coverage analysis
-7. **Performance Profiling**: Use `--profile` for large codebases (1000+ files) to get optimization recommendations
-8. **Memory Optimization**: Performance profiling helps identify memory bottlenecks and suggests batch processing improvements
+# Custom test command
+# test_command: "flutter test --coverage"
 
-## 🧪 Generating Coverage Data
-
-Before using smart_coverage, ensure you have coverage data:
-
-```sh
-# Generate coverage data
-dart test --coverage=coverage
-dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info
-
-# Then analyze with smart_coverage
-smart_coverage analyze --base-branch main
-```
-
-### Alternative: Let smart_coverage handle it
-
-```sh
-# smart_coverage will run tests and generate coverage automatically
-smart_coverage analyze --base-branch main
+# AI features
+# test_insights: true
+# code_review: true
+# ai_config:
+#   provider: "gemini"
+#   api_key_env: "GEMINI_API_KEY"
 ```
 
 ## 🤖 AI Configuration
 
-To use AI-powered features, configure your AI service:
-
-### Environment Variables
+To use AI-powered features (`--test-insights`, `--code-review`):
 
 ```sh
-# For Gemini AI (Google)
+# Set your API key
 export GEMINI_API_KEY="your-api-key-here"
 
-# For OpenAI
-export OPENAI_API_KEY="your-api-key-here"
+# Run with AI features
+smart_coverage analyze --base-branch main --test-insights --code-review
 ```
 
-### Configuration File
+Or configure in `smart_coverage.yaml`:
 
 ```yaml
 ai_config:
-  provider: "gemini"  # or "openai", "claude"
-  model: "gemini-pro"
+  provider: "gemini"
   api_key_env: "GEMINI_API_KEY"
-  provider_type: "api"  # or "local"
 ```
 
 ## 🚨 Troubleshooting
 
-### Common Issues
+| Issue | Solution |
+|-------|----------|
+| "Unknown revision 'main'" | Use `origin/main` instead of `main` |
+| "No coverage data found" | Run without `--skip-tests` or generate coverage first |
+| AI features not working | Check `echo $GEMINI_API_KEY` is set |
+| Tab completion not working | Run `smart_coverage completion-setup` |
 
-#### "Unknown revision 'main'"
-
-**Problem**: Git can't find the specified branch.
-
-**Solution**: Use the full remote branch name:
-```sh
-# Instead of
-smart_coverage analyze --base-branch main
-
-# Use
-smart_coverage analyze --base-branch origin/main
-```
-
-#### "No coverage data found"
-
-**Problem**: LCOV file doesn't exist or is empty.
-
-**Solutions**:
-1. Generate coverage data first:
-   ```sh
-   dart test --coverage=coverage
-   dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info
-   ```
-
-2. Or let smart_coverage handle it (don't use `--skip-tests`):
-   ```sh
-   smart_coverage analyze --base-branch main
-   ```
-
-#### "No modified files detected"
-
-**Problem**: No files have changed compared to the base branch.
-
-**Solutions**:
-1. Check if you're on the right branch:
-   ```sh
-   git branch
-   git status
-   ```
-
-2. Verify the base branch exists:
-   ```sh
-   git branch -a
-   ```
-
-3. Make some changes and commit them, or analyze all files by omitting `--base-branch`
-
-#### AI Features Not Working
-
-**Problem**: Test insights or code review not generating.
-
-**Solutions**:
-1. Check API key configuration:
-   ```sh
-   echo $GEMINI_API_KEY  # Should not be empty
-   ```
-
-2. Verify internet connection for API-based services
-
-3. Check configuration file syntax if using config files
-
-### Debug Mode
-
-Use verbose logging for detailed troubleshooting:
+For detailed debugging:
 
 ```sh
 smart_coverage analyze --base-branch main --verbose
@@ -462,139 +151,22 @@ smart_coverage analyze --base-branch main --verbose
 
 ## 🔧 Development
 
-### Running from Source
-
 ```sh
-# Clone the repository
-git clone https://github.com/your-username/smart_coverage.git
+# Clone and setup
+git clone https://github.com/Dammyololade/smart_coverage.git
 cd smart_coverage
-
-# Install dependencies
 dart pub get
 
 # Run from source
 dart run bin/smart_coverage.dart analyze --help
-```
 
-### Running Tests
-
-```sh
-# Run all tests
+# Run tests
 dart test
-
-# Run tests with coverage
-dart test --coverage=coverage
-dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info
-
-# View coverage report
-genhtml coverage/lcov.info -o coverage/
-open coverage/index.html
-```
-
-## 📊 Coverage Badge Automation
-
-The coverage badge in this README is automatically updated! Here's how:
-
-### Automated Options
-
-#### 1️⃣ GitHub Actions (Recommended for Teams)
-The badge auto-updates on every push to `main`:
-- ✅ Runs tests automatically
-- 📊 Calculates coverage percentage  
-- 🎨 Updates badge with color-coding
-- 💬 Comments coverage on PRs
-
-**Setup:** Already configured! Just push to GitHub.
-
-#### 2️⃣ Local Scripts (For Development)
-
-**Quick update with Makefile:**
-```sh
-make badge          # Update badge (recommended)
-make html-report    # Generate and open HTML report
-make coverage-summary  # Show quick coverage stats
-```
-
-**Or use individual scripts:**
-```sh
-# Dart script (cross-platform)
-dart run tool/update_coverage_badge.dart
-
-
-#### 3️⃣ Git Pre-Commit Hook (Automatic Local Updates)
-Install once, badge updates automatically on every commit:
-```sh
-make install-hooks
-# or
-cp tool/pre-commit .git/hooks/pre-commit
-```
-
-Now the badge updates automatically when you commit test/source changes!
-
-### Badge Color Scheme
-
-| Coverage | Color | Badge |
-|----------|-------|-------|
-| ≥90% | 🟢 Bright Green | Excellent |
-| ≥80% | 🟢 Green | Good |
-| ≥70% | 🟡 Yellow | Acceptable |
-| ≥60% | 🟠 Orange | Needs Improvement |
-| <60% | 🔴 Red | Poor |
-
-### Quick Reference
-
-```sh
-# See all available commands
-make help
-
-# Complete workflow
-make all            # Clean, test, analyze, and generate reports
-
-# Individual steps
-make test           # Run tests only
-make coverage       # Generate coverage data
-make badge          # Update badge
-make html-report    # Generate visual report
-```
-
-For detailed documentation, see [`tool/README.md`](tool/README.md).
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-### Development Setup
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Add tests for your changes
-5. Ensure tests pass (`dart test`)
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
-
-### Code Style
-
-This project follows [Very Good Analysis](https://pub.dev/packages/very_good_analysis) guidelines:
-
-```sh
-# Check code style
-dart analyze
-
-# Format code
-dart format .
 ```
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with [Very Good CLI](https://github.com/VeryGoodOpenSource/very_good_cli)
-- Powered by [Mason Logger](https://pub.dev/packages/mason_logger) for beautiful CLI output
-- Uses [LCOV](https://github.com/linux-test-project/lcov) format for coverage data
+MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -603,4 +175,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 [license_link]: https://opensource.org/licenses/MIT
 [very_good_analysis_badge]: https://img.shields.io/badge/style-very_good_analysis-B22C89.svg
 [very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
-[very_good_cli_link]: https://github.com/VeryGoodOpenSource/very_good_cli
